@@ -44,8 +44,9 @@ public interface Viewable : GLib.Object {
 				return false;
 
 			object.set_data("viewable-window", window);
-			window.destroy.connect(() => {
+			window.close_request.connect(() => {
 				object.set_data_full("viewable-window", null, null);
+                return false;
 			});
 		}
 

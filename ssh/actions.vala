@@ -60,16 +60,19 @@ public class Seahorse.Ssh.Actions : ActionGroup {
         var dialog = new Generate(Backend.instance.get_dot_ssh(),
                                   this.catalog);
 
-        if (dialog.run() != Gtk.ResponseType.ACCEPT) {
-            dialog.destroy();
-            return;
-        }
+        dialog.response.connect((response) => {
+            if (response != Gtk.ResponseType.ACCEPT) {
+                dialog.destroy();
+                return;
+            }
 
-        dialog.generate_key.begin ((obj, res) => {
-            dialog.generate_key.end (res);
-            dialog.destroy();
-            this.catalog.activate_action("focus-place", "openssh");
+            dialog.generate_key.begin ((obj, res) => {
+                dialog.generate_key.end (res);
+                dialog.destroy();
+                this.catalog.activate_action("focus-place", "openssh");
+            });
         });
+        dialog.show();
     }
 
     private void on_ssh_upload(SimpleAction action, Variant? param) {

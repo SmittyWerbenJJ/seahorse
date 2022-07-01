@@ -56,10 +56,6 @@ gboolean        seahorse_util_write_file_private        (const char  *filename,
                                                          const char  *contents,
                                                          GError     **err);
 
-GList *         seahorse_util_objects_sort_by_place     (GList *objects);
-
-GList *         seahorse_util_objects_splice_by_place   (GList *objects);
-
 SeahorseVersion seahorse_util_parse_version             (const char *version);
 
 guint       seahorse_ulong_hash    (gconstpointer v);

@@ -25,12 +25,14 @@
 
 #include "seahorse-common.h"
 
-#define SEAHORSE_GPGME_TYPE_EXPORTER (seahorse_gpgme_exporter_get_type ())
-G_DECLARE_FINAL_TYPE (SeahorseGpgmeExporter, seahorse_gpgme_exporter, SEAHORSE_GPGME, EXPORTER, GObject)
+#include "seahorse-gpgme-key.h"
 
-SeahorseExporter *        seahorse_gpgme_exporter_new          (GObject *object,
-                                                                gboolean armor,
-                                                                gboolean secret);
+#define SEAHORSE_GPGME_TYPE_KEY_EXPORT_OPERATION (seahorse_gpgme_key_export_operation_get_type ())
+G_DECLARE_FINAL_TYPE (SeahorseGpgmeKeyExportOperation,
+                      seahorse_gpgme_key_export_operation,
+                      SEAHORSE_GPGME, KEY_EXPORT_OPERATION,
+                      SeahorseExportOperation)
 
-SeahorseExporter *        seahorse_gpgme_exporter_new_multiple (GList *keys,
-                                                                gboolean armor);
+SeahorseExportOperation *    seahorse_gpgme_key_export_operation_new   (SeahorseGpgmeKey *key,
+                                                                        gboolean armor,
+                                                                        gboolean secret);

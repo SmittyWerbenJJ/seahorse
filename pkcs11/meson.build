@@ -1,23 +1,24 @@
 pkcs11_sources = files(
-  'certificate-der-exporter.vala',
+  'certificate-der-export-operation.vala',
   'pkcs11-certificate.vala',
-  'pkcs11-deleter.vala',
+  'pkcs11-certificate-dialog.vala',
+  'pkcs11-certificate-widget.vala',
+  'pkcs11-delete-operation.vala',
   'pkcs11-generate.vala',
-  'pkcs11-key-deleter.vala',
   'pkcs11-module.vala',
   'pkcs11-private-key.vala',
-  'pkcs11-properties.vala',
+  'pkcs11-private-key-widget.vala',
   'pkcs11-request.vala',
   'pkcs11-token.vala',
+  'pkcs11-token-filter.vala',
 
   'cryptoki.vapi',
+  'pkcs11.vapi',
   'seahorse-pkcs11-backend.c',
 )
 
 pkcs11_deps = [
   glib_deps,
-  gcr_ui,
-  pkcs11_dep,
   common_dep,
 ]
 

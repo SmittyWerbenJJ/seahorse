@@ -20,6 +20,7 @@
 
 #include "seahorse-pgp-dialogs.h"
 #include "seahorse-pgp-key.h"
+#include "seahorse-pgp-key-properties.h"
 #include "seahorse-pgp-photo.h"
 #include "seahorse-pgp-uid.h"
 #include "seahorse-pgp-subkey.h"
@@ -253,13 +254,15 @@ seahorse_pgp_key_realize (SeahorsePgpKey *self)
     g_object_get (self, "usage", &usage, NULL);
 
     /* The type */
-    if (usage == SEAHORSE_USAGE_PRIVATE_KEY) {
-        icon_name = GCR_ICON_KEY_PAIR;
-    } else {
-        icon_name = GCR_ICON_KEY;
-        if (usage == SEAHORSE_USAGE_NONE)
-            g_object_set (self, "usage", SEAHORSE_USAGE_PUBLIC_KEY, NULL);
-    }
+    // XXX icon for key pair?
+    icon_name = "key-item-symbolic";
+    /* if (usage == SEAHORSE_USAGE_PRIVATE_KEY) { */
+    /*     icon_name = GCR_ICON_KEY_PAIR; */
+    /* } else { */
+    /*     icon_name = GCR_ICON_KEY; */
+    /*     if (usage == SEAHORSE_USAGE_NONE) */
+    /*         g_object_set (self, "usage", SEAHORSE_USAGE_PUBLIC_KEY, NULL); */
+    /* } */
 
     icon = g_themed_icon_new (icon_name);
     g_object_set (self,

@@ -21,72 +21,24 @@
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
-public class Seahorse.Ssh.Deleter : Seahorse.Deleter {
+public class Seahorse.Ssh.KeyDeleteOperation : DeleteOperation {
 
-    private bool have_private;
-    private List<Key> keys;
-
-    public Deleter(Key key) {
-        if (!add_object(key))
-            assert_not_reached ();
+    public KeyDeleteOperation(Ssh.Key key) {
+        add_item(key);
     }
 
-    public override Gtk.Dialog create_confirm(Gtk.Window? parent) {
-        uint num = this.keys.length();
-
-        string confirm, prompt;
-        if (this.have_private) {
-            assert(num == 1);
-
-            prompt = _("Are you sure you want to delete the secure shell key “%s”?")
-                         .printf(this.keys.data.label);
-            confirm = _("I understand that this secret key will be permanently deleted.");
-
-        } else if (num == 1) {
-            prompt = _("Are you sure you want to delete the secure shell key “%s”?")
-                         .printf(this.keys.data.label);
-            confirm = null;
-
-        } else {
-            prompt = ngettext("Are you sure you want to delete %u secure shell key?",
-                              "Are you sure you want to delete %u secure shell keys?",
-                              num).printf(num);
-            confirm = null;
-        }
-
-        Seahorse.DeleteDialog dialog = new Seahorse.DeleteDialog(parent, "%s", prompt);
-
-        if (confirm != null) {
-            dialog.check_label = confirm;
-            dialog.check_require = true;
-        }
-
-        return dialog;
+    public void add_item(Ssh.Key key) {
+        if (contains(key))
+            return;
+        this.items.add(key);
     }
 
-    public override unowned GLib.List<GLib.Object> get_objects () {
-        return this.keys;
-    }
-
-    public override bool add_object(GLib.Object object) {
-        Key key = object as Key;
-        if (this.have_private || key == null)
-            return false;
-
-        if (key.usage == Seahorse.Usage.PRIVATE_KEY) {
-            if (this.keys != null)
-                return false;
-            this.have_private = true;
-        }
-
-        this.keys.append(key);
-        return true;
-    }
-
-    public override async bool delete(GLib.Cancellable? cancellable) throws GLib.Error {
-        foreach (Key key in this.keys)
+    public override async bool execute(Cancellable? cancellable = null) throws GLib.Error {
+        debug("Deleting %u SSH keys", this.items.length);
+        foreach (unowned var item in this.items) {
+            var key = (Ssh.Key) item;
             delete_key(key);
-
+        }
         return true;
     }
 

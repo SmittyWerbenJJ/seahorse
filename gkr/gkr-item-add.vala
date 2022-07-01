@@ -19,45 +19,30 @@
 
 [GtkTemplate (ui = "/org/gnome/Seahorse/seahorse-gkr-add-item.ui")]
 public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
-    [GtkChild]
-    private unowned Gtk.ComboBox item_keyring_combo;
-    [GtkChild]
-    private unowned Gtk.Container password_area;
-    private Gtk.Entry password_entry;
-    [GtkChild]
-    private unowned Gtk.Entry item_entry;
-    [GtkChild]
-    private unowned Gtk.LevelBar password_strength_bar;
-    [GtkChild]
-    private unowned Gtk.Image password_strength_icon;
 
+    [GtkChild] private unowned Adw.ComboRow keyring_row;
+    [GtkChild] private unowned Adw.PasswordEntryRow password_row;
+    [GtkChild] private unowned Adw.EntryRow description_row;
+
+    [GtkChild] private unowned Gtk.LevelBar password_strength_bar;
+    [GtkChild] private unowned Gtk.Image password_strength_icon;
     private PasswordQuality.Settings pwquality = new PasswordQuality.Settings();
 
     construct {
-        // Load up a list of all the keyrings, and select the default
-        var store = new Gtk.ListStore(2, typeof(string), typeof(Secret.Collection));
-        this.item_keyring_combo.set_model(store);
+        // Set the list of all keyrings as model, and select the default
+        var model = Gkr.Backend.instance();
+        this.keyring_row.set_model(model);
 
-        var cell = new Gtk.CellRendererText();
-        this.item_keyring_combo.pack_start(cell, true);
-        this.item_keyring_combo.add_attribute(cell, "text", 0);
-
-        foreach (var keyring in Backend.instance().get_keyrings()) {
-            Gtk.TreeIter iter;
-            store.append(out iter);
-            store.set(iter, 0, keyring.label,
-                            1, keyring);
+        for (uint i = 0; i < model.get_n_items(); i++) {
+            var keyring = (Gkr.Keyring) model.get_item(i);
             if (keyring.is_default)
-                this.item_keyring_combo.set_active_iter(iter);
+                this.keyring_row.set_selected(i);
         }
 
+        this.response.connect(on_response);
         set_response_sensitive(Gtk.ResponseType.ACCEPT, false);
 
-        this.password_entry = new PasswordEntry();
-        this.password_entry.visibility = false;
-        this.password_entry.changed.connect(on_password_entry_changed);
-        this.password_area.add(this.password_entry);
-        this.password_entry.show();
+        this.password_row.changed.connect(on_password_row_changed);
     }
 
     public ItemAdd(Gtk.Window? parent) {
@@ -68,11 +53,11 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
     }
 
     [GtkCallback]
-    private void on_add_item_entry_changed (Gtk.Editable entry) {
-        set_response_sensitive(Gtk.ResponseType.ACCEPT, this.item_entry.text != "");
+    private void on_description_row_changed(Gtk.Editable editable) {
+        set_response_sensitive(Gtk.ResponseType.ACCEPT, editable.text != "");
     }
 
-    private void on_password_entry_changed (Gtk.Editable entry) {
+    private void on_password_row_changed(Gtk.Editable entry) {
         void* auxerr;
         int score = this.pwquality.check(entry.get_chars(), null, null, out auxerr);
 
@@ -87,27 +72,20 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
         this.password_strength_bar.value = ((score / 25) + 1).clamp(1, 5);
     }
 
-    public override void response(int resp) {
+    private void on_response(int resp) {
         if (resp != Gtk.ResponseType.ACCEPT)
             return;
 
-        Gtk.TreeIter iter;
-        if (!this.item_keyring_combo.get_active_iter(out iter))
-            return;
-
-        Secret.Collection collection;
-        this.item_keyring_combo.model.get(iter, 1, out collection, -1);
-
-        var keyring = (Keyring) collection;
+        var keyring = (Keyring) this.keyring_row.selected_item;
         var cancellable = new Cancellable();
         var interaction = new Interaction(this);
-        var item_buffer = this.item_entry.buffer;
-        var secret_buffer = this.password_entry.buffer;
 
         keyring.unlock.begin(interaction, cancellable, (obj, res) => {
             try {
                 if (keyring.unlock.end(res)) {
-                    create_secret(item_buffer, secret_buffer, collection);
+                    create_secret(this.description_row.text,
+                                  this.password_row.text,
+                                  keyring);
                 }
             } catch (Error e) {
                 Util.show_error(this, _("Couldn’t unlock"), e.message);
@@ -115,10 +93,10 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
         });
     }
 
-    private void create_secret(Gtk.EntryBuffer item_buffer,
-                               Gtk.EntryBuffer secret_buffer,
+    private void create_secret(string item,
+                               string secret,
                                Secret.Collection collection) {
-        var secret = new Secret.Value(secret_buffer.text, -1, "text/plain");
+        var secret_val = new Secret.Value(secret, -1, "text/plain");
         var cancellable = Dialog.begin_request(this);
         var attributes = new HashTable<string, string>(GLib.str_hash, GLib.str_equal);
 
@@ -126,7 +104,7 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
         var schema = new Secret.Schema("org.gnome.keyring.Note", Secret.SchemaFlags.NONE);
 
         Secret.Item.create.begin(collection, schema, attributes,
-                                 item_buffer.text, secret, Secret.ItemCreateFlags.NONE,
+                                 item, secret_val, Secret.ItemCreateFlags.NONE,
                                  cancellable, (obj, res) => {
             try {
                 /* Clear the operation without cancelling it since it is complete */

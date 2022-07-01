@@ -25,14 +25,16 @@
 #include <glib-object.h>
 
 #include "seahorse-common.h"
-#include "seahorse-gpgme-key.h"
+#include "seahorse-gpgme-uid.h"
 
-#define SEAHORSE_TYPE_GPGME_KEY_DELETER       (seahorse_gpgme_key_deleter_get_type ())
-#define SEAHORSE_GPGME_KEY_DELETER(obj)       (G_TYPE_CHECK_INSTANCE_CAST ((obj), SEAHORSE_TYPE_GPGME_KEY_DELETER, SeahorseGpgmeKeyDeleter))
-#define SEAHORSE_IS_GPGME_KEY_DELETER(obj)    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SEAHORSE_TYPE_GPGME_KEY_DELETER))
+#define SEAHORSE_GPGME_TYPE_UID_DELETE_OPERATION (seahorse_gpgme_uid_delete_operation_get_type ())
+G_DECLARE_FINAL_TYPE (SeahorseGpgmeUidDeleteOperation,
+                      seahorse_gpgme_uid_delete_operation,
+                      SEAHORSE_GPGME, UID_DELETE_OPERATION,
+                      SeahorseDeleteOperation)
 
-typedef struct _SeahorseGpgmeKeyDeleter SeahorseGpgmeKeyDeleter;
+SeahorseGpgmeUidDeleteOperation *
+                      seahorse_gpgme_uid_delete_operation_new       (SeahorseGpgmeUid *uid);
 
-GType              seahorse_gpgme_key_deleter_get_type   (void) G_GNUC_CONST;
-
-SeahorseDeleter *  seahorse_gpgme_key_deleter_new        (SeahorseGpgmeKey *key);
+void                  seahorse_gpgme_uid_delete_operation_add_uid   (SeahorseGpgmeUidDeleteOperation *self,
+                                                                     SeahorseGpgmeUid                *uid);

@@ -26,13 +26,10 @@ public class Seahorse.Ssh.Generate : Gtk.Dialog {
 
     public Ssh.Source source { get; construct set; }
 
-    [GtkChild]
-    private unowned Gtk.Grid details_grid;
+    [GtkChild] private unowned Adw.ActionRow key_strength_row;
     private KeyLengthChooser key_length_chooser;
-    [GtkChild]
-    private unowned Gtk.Entry email_entry;
-    [GtkChild]
-    private unowned Gtk.ComboBoxText algorithm_combo_box;
+    [GtkChild] private unowned Adw.EntryRow email_row;
+    [GtkChild] private unowned Adw.ComboRow algo_row;
 
     public Generate(Source src, Gtk.Window parent) {
         GLib.Object (
@@ -44,16 +41,16 @@ public class Seahorse.Ssh.Generate : Gtk.Dialog {
         this.source = src;
 
         this.key_length_chooser = new KeyLengthChooser();
-        this.key_length_chooser.halign = Gtk.Align.START;
-        this.details_grid.attach(this.key_length_chooser, 1, 3);
+        this.key_length_chooser.valign = Gtk.Align.CENTER;
+        this.key_strength_row.add_suffix(this.key_length_chooser);
 
         // on_algo_changed() gets called, bits chooser is setup
-        algorithm_combo_box.set_active(0);
+        this.algo_row.selected = 0;
     }
 
     [GtkCallback]
-    private void on_algo_changed(Gtk.ComboBox combo) {
-        string t = algorithm_combo_box.get_active_text();
+    private void on_algo_row_selected_changed(GLib.Object obj, ParamSpec pspec) {
+        var t = ((Gtk.StringObject) this.algo_row.selected_item).string;
         this.key_length_chooser.algorithm = Algorithm.from_string(t);
     }
 
@@ -65,10 +62,10 @@ public class Seahorse.Ssh.Generate : Gtk.Dialog {
      */
     public async void generate_key() {
         // The email address
-        string email = this.email_entry.text;
+        string email = this.email_row.text;
 
         // The algorithm
-        string t = this.algorithm_combo_box.get_active_text();
+        var t = ((Gtk.StringObject) this.algo_row.selected_item).string;
         Algorithm type = Algorithm.from_string(t);
         assert(type != Algorithm.UNKNOWN);
 

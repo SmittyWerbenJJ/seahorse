@@ -1,11 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gresources>
   <gresource prefix="/org/gnome/Seahorse">
+    <!-- CSS -->
     <file alias="seahorse.css">../libseahorse/seahorse.css</file>
 
-    <file alias="seahorse-progress.ui" preprocess="xml-stripblanks">../libseahorse/seahorse-progress.ui</file>
+    <!-- Custom icons -->
+    <file alias="icons/key-item-symbolic.svg" preprocess="xml-stripblanks">icons/custom/key-item-symbolic.svg</file>
+    <file alias="icons/secret-item-symbolic.svg" preprocess="xml-stripblanks">icons/custom/secret-item-symbolic.svg</file>
 
     <!-- Common -->
+    <file alias="seahorse-progress.ui" preprocess="xml-stripblanks">../libseahorse/seahorse-progress.ui</file>
     <file alias="seahorse-add-keyserver.ui" preprocess="xml-stripblanks">../common/seahorse-add-keyserver.ui</file>
     <file alias="seahorse-prefs-keyservers.ui" preprocess="xml-stripblanks">../common/seahorse-prefs-keyservers.ui</file>
 
@@ -31,19 +35,20 @@
     <file alias="seahorse-gpgme-add-uid.ui" preprocess="xml-stripblanks">../pgp/seahorse-gpgme-add-uid.ui</file>
     <file alias="seahorse-gpgme-expires-dialog.ui" preprocess="xml-stripblanks">../pgp/seahorse-gpgme-expires-dialog.ui</file>
     <file alias="seahorse-gpgme-generate-dialog.ui" preprocess="xml-stripblanks">../pgp/seahorse-gpgme-generate-dialog.ui</file>
-    <file alias="seahorse-gpgme-revoke-dialog.ui" preprocess="xml-stripblanks">../pgp/seahorse-revoke.ui</file>
+    <file alias="seahorse-gpgme-revoke-dialog.ui" preprocess="xml-stripblanks">../pgp/seahorse-gpgme-revoke-dialog.ui</file>
     <file alias="seahorse-gpgme-sign-dialog.ui" preprocess="xml-stripblanks">../pgp/seahorse-gpgme-sign-dialog.ui</file>
     <file alias="seahorse-keyserver-results.ui" preprocess="xml-stripblanks">../pgp/seahorse-keyserver-results.ui</file>
     <file alias="seahorse-keyserver-search.ui" preprocess="xml-stripblanks">../pgp/seahorse-keyserver-search.ui</file>
     <file alias="seahorse-keyserver-sync.ui" preprocess="xml-stripblanks">../pgp/seahorse-keyserver-sync.ui</file>
-    <file alias="seahorse-pgp-private-key-properties.ui" preprocess="xml-stripblanks">../pgp/seahorse-pgp-private-key-properties.ui</file>
-    <file alias="seahorse-pgp-public-key-properties.ui" preprocess="xml-stripblanks">../pgp/seahorse-pgp-public-key-properties.ui</file>
+    <file alias="seahorse-pgp-key-properties.ui" preprocess="xml-stripblanks">../pgp/seahorse-pgp-key-properties.ui</file>
     <file alias="seahorse-pgp-subkey-list-box-row.ui" preprocess="xml-stripblanks">../pgp/seahorse-pgp-subkey-list-box-row.ui</file>
     <file alias="seahorse-pgp-uid-list-box-row.ui" preprocess="xml-stripblanks">../pgp/seahorse-pgp-uid-list-box-row.ui</file>
 
     <!-- PKCS#11 -->
-    <file alias="seahorse-pkcs11-generate.ui" preprocess="xml-stripblanks">../pkcs11/seahorse-pkcs11-generate.ui</file>
-    <file alias="seahorse-pkcs11-properties.ui" preprocess="xml-stripblanks">../pkcs11/seahorse-pkcs11-properties.ui</file>
-    <file alias="seahorse-pkcs11-request.ui" preprocess="xml-stripblanks">../pkcs11/seahorse-pkcs11-request.ui</file>
+    <file alias="pkcs11-certificate-dialog.ui" preprocess="xml-stripblanks">../pkcs11/pkcs11-certificate-dialog.ui</file>
+    <file alias="pkcs11-certificate-widget.ui" preprocess="xml-stripblanks">../pkcs11/pkcs11-certificate-widget.ui</file>
+    <file alias="pkcs11-generate.ui" preprocess="xml-stripblanks">../pkcs11/pkcs11-generate.ui</file>
+    <file alias="pkcs11-private-key-widget.ui" preprocess="xml-stripblanks">../pkcs11/pkcs11-private-key-widget.ui</file>
+    <file alias="pkcs11-request.ui" preprocess="xml-stripblanks">../pkcs11/pkcs11-request.ui</file>
   </gresource>
 </gresources>

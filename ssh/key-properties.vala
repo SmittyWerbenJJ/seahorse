@@ -20,77 +20,65 @@
  */
 
 [GtkTemplate (ui = "/org/gnome/Seahorse/seahorse-ssh-key-properties.ui")]
-public class Seahorse.Ssh.KeyProperties : Gtk.Dialog {
+public class Seahorse.Ssh.KeyProperties : Gtk.ApplicationWindow {
 
-    private Key key;
+    public Key key { get; construct set; }
 
     // Used to make sure we don't start calling command unnecessarily
     private bool updating_ui = false;
 
-    [GtkChild]
-    private unowned Gtk.Entry comment_entry;
-    [GtkChild]
-    private unowned Gtk.Switch trust_check;
-    [GtkChild]
-    private unowned Gtk.Button passphrase_button;
-    [GtkChild]
-    private unowned Gtk.Button export_button;
-    [GtkChild]
-    private unowned Gtk.Button copy_button;
-    [GtkChild]
-    private unowned Gtk.Label fingerprint_label;
-    [GtkChild]
-    private unowned Gtk.Label algo_label;
-    [GtkChild]
-    private unowned Gtk.Label location_label;
-    [GtkChild]
-    private unowned Gtk.Label pubkey_label;
-    [GtkChild]
-    private unowned Gtk.Label key_length_label;
+    [GtkChild] private unowned Adw.EntryRow comment_row;
 
-    public KeyProperties(Key key, Gtk.Window parent) {
-        GLib.Object(
-            use_header_bar: 1,
-            transient_for: parent
-        );
-        this.key = key;
+    [GtkChild] private unowned Adw.ActionRow algo_row;
+    [GtkChild] private unowned Adw.ActionRow key_length_row;
+    [GtkChild] private unowned Adw.ActionRow location_row;
+    [GtkChild] private unowned Adw.ActionRow fingerprint_row;
+
+    [GtkChild] private unowned Gtk.Label pubkey_label;
+
+    [GtkChild] private unowned Gtk.Switch trust_check;
+
+    static construct {
+        install_action("copy-public-key", null, (Gtk.WidgetActionActivateFunc) on_copy_public_key);
+        install_action("change-passphrase", null, (Gtk.WidgetActionActivateFunc) on_change_passphrase);
+        install_action("export-secret-key", null, (Gtk.WidgetActionActivateFunc) action_export_secret_key);
+        install_action("delete-key", null, (Gtk.WidgetActionActivateFunc) on_delete_key);
+    }
+
+    public KeyProperties(Key key, Gtk.Window? parent = null) {
+        GLib.Object(key: key, transient_for: parent);
 
         update_ui();
 
         // A public key only
         if (key.usage != Seahorse.Usage.PRIVATE_KEY) {
-            this.passphrase_button.visible = false;
-            this.export_button.visible = false;
-            this.copy_button.visible = false;
+            action_set_enabled("change-passphrase", false);
+            action_set_enabled("export-secret-key", false);
         }
 
-        this.key.notify.connect(() => update_ui());
+        this.key.notify.connect((obj, pspec) => update_ui());
     }
 
     private void update_ui() {
         this.updating_ui = true;
 
         // Name and title
-        this.comment_entry.text = this.key.label;
+        this.comment_row.text = this.key.label;
 
         // Setup the check
         this.trust_check.active = (this.key.trust >= Seahorse.Validity.FULL);
 
-        this.fingerprint_label.label = this.key.fingerprint;
-        this.algo_label.label = this.key.get_algo().to_string() ?? _("Unknown type");
-        this.location_label.label = this.key.get_location();
-        this.key_length_label.label = "%u".printf(this.key.get_strength());
+        this.fingerprint_row.subtitle = "<span font=\"monospace\">%s</span>".printf(this.key.fingerprint);
+        this.algo_row.subtitle = this.key.get_algo().to_string() ?? _("Unknown type");
+        this.location_row.subtitle = this.key.get_location();
+        this.key_length_row.subtitle = "%u".printf(this.key.get_strength());
         this.pubkey_label.label = this.key.pubkey;
 
         this.updating_ui = false;
     }
 
-    public override void response(int response) {
-        destroy();
-    }
-
     [GtkCallback]
-    public void on_ssh_comment_activate(Gtk.Entry entry) {
+    public void on_ssh_comment_apply(Adw.EntryRow entry) {
         // Make sure not the same
         if (key.key_data.comment != null && entry.text == key.key_data.comment)
             return;
@@ -108,12 +96,6 @@ public class Seahorse.Ssh.KeyProperties : Gtk.Dialog {
 
             entry.sensitive = true;
         });
-    }
-
-    [GtkCallback]
-    private bool on_ssh_comment_focus_out(Gtk.Widget widget, Gdk.EventFocus event) {
-        on_ssh_comment_activate((Gtk.Entry) widget);
-        return false;
     }
 
     [GtkCallback]
@@ -135,70 +117,56 @@ public class Seahorse.Ssh.KeyProperties : Gtk.Dialog {
         });
     }
 
-    [GtkCallback]
-    private void on_ssh_passphrase_button_clicked (Gtk.Button button) {
-        button.sensitive = false;
-
+    private void on_change_passphrase(string action_name, Variant? param) {
         ChangePassphraseOperation op = new ChangePassphraseOperation();
-        op.change_passphrase_async.begin(key, null, (obj, res) => {
+        op.change_passphrase_async.begin(this.key, null, (obj, res) => {
             try {
                 op.change_passphrase_async.end(res);
             } catch (GLib.Error e) {
                 Seahorse.Util.show_error(this, _("Couldn’t change passphrase for key."), e.message);
             }
-
-            button.sensitive = true;
         });
     }
 
-    [GtkCallback]
-    private void on_delete_clicked(Gtk.Button button) {
-        var deleter = this.key.create_deleter();
-        var ret = deleter.prompt(this);
-
-        if (!ret)
-            return;
-
-        deleter.delete.begin(null, (obj, res) => {
+    private void on_delete_key(string action_name, Variant? param) {
+        var delete_op = this.key.create_delete_operation();
+        delete_op.execute_interactively.begin(this, null, (obj, res) => {
             try {
-                deleter.delete.end(res);
-                this.destroy();
+                delete_op.execute_interactively.end(res);
+            } catch (GLib.IOError.CANCELLED e) {
+                debug("Deletion of key cancelled by user");
             } catch (GLib.Error e) {
-                var dialog = new Gtk.MessageDialog(this,
-                    Gtk.DialogFlags.MODAL,
-                    Gtk.MessageType.ERROR,
-                    Gtk.ButtonsType.OK,
-                    _("Error deleting the SSH key."));
-                dialog.run();
-                dialog.destroy();
+                Util.show_error(this, _("Couldn’t delete key"), e.message);
             }
         });
     }
 
-    [GtkCallback]
-    private void on_ssh_export_button_clicked (Gtk.Widget widget) {
-        List<Exporter> exporters = new List<Exporter>();
-        exporters.append(new Exporter(key, true));
+    private void action_export_secret_key(string action_name, Variant? param) {
+        export.begin(true, (obj, res) => {
+            export.end(res);
+        });
+    }
 
-        Seahorse.Exporter exporter;
-        string directory = null;
-        File file;
-        if (Seahorse.Exportable.prompt(exporters, this, ref directory, out file, out exporter)) {
-            exporter.export_to_file.begin(file, true, null, (obj, res) => {
-                try {
-                    exporter.export_to_file.end(res);
-                } catch (GLib.Error e) {
-                    Seahorse.Util.show_error(this, _("Couldn’t export key"), e.message);
-                }
-            });
+    private async void export(bool secret)
+            requires (this.key is Exportable) {
+        var export_op = new Ssh.KeyExportOperation(this.key, secret);
+
+        try {
+            var prompted = yield export_op.prompt_for_file(this, null);
+            if (!prompted) {
+                debug("no file picked by user");
+                return;
+            }
+
+            yield export_op.execute(null);
+        } catch (GLib.IOError.CANCELLED e) {
+            debug("Exporting of key cancelled by user");
+        } catch (GLib.Error e) {
+            Util.show_error(this, _("Couldn’t export key"), e.message);
         }
     }
 
-    [GtkCallback]
-    private void on_ssh_copy_button_clicked (Gtk.Widget widget) {
-        var display = widget.get_display ();
-        var clipboard = Gtk.Clipboard.get_for_display (display, Gdk.SELECTION_CLIPBOARD);
-
-        clipboard.set_text(this.key.pubkey, -1);
+    private void on_copy_public_key(string action_name, Variant? param) {
+        get_clipboard().set_text(this.key.pubkey);
     }
 }

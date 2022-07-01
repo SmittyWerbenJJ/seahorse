@@ -1,190 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="3.22"/>
-  <template class="SeahorseGkrItemProperties" parent="GtkDialog">
+  <template class="SeahorseGkrItemProperties" parent="GtkWindow">
     <property name="width_request">400</property>
     <property name="height_request">400</property>
-    <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Item Properties</property>
-    <property name="window_position">center-on-parent</property>
-    <property name="type_hint">dialog</property>
-    <child>
-      <placeholder/>
-    </child>
-    <child internal-child="vbox">
-      <object class="GtkBox">
-        <property name="halign">fill</property>
-        <property name="orientation">vertical</property>
-        <property name="border_width">0</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox">
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">True</property>
+        <property name="title-widget">
+          <object class="AdwWindowTitle" id="window_title">
+            <property name="title" translatable="yes">Item Properties</property>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hscrollbar-policy">never</property>
+        <property name="vscrollbar-policy">automatic</property>
+        <property name="propagate_natural-height">True</property>
+        <property name="propagate_natural-width">True</property>
         <child>
-          <object class="GtkScrolledWindow">
-            <property name="visible">True</property>
-            <property name="hscrollbar_policy">never</property>
-            <property name="vscrollbar_policy">automatic</property>
-            <property name="propagate_natural_height">True</property>
-            <property name="propagate_natural_width">True</property>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">12</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <child>
-              <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="orientation">vertical</property>
-                <property name="margin">18</property>
-                <property name="spacing">12</property>
+              <object class="AdwPreferencesGroup">
                 <child>
-                  <object class="GtkListBox">
-                    <property name="visible">True</property>
-                    <property name="selection_mode">none</property>
-                    <style>
-                      <class name="content"/>
-                    </style>
-                    <child>
-                      <object class="HdyActionRow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="title" translatable="yes">Description</property>
-                        <property name="activatable_widget">description_field</property>
-                        <child>
-                          <object class="GtkEntry" id="description_field">
-                            <property name="visible">True</property>
-                            <property name="valign">center</property>
-                            <property name="can_focus">True</property>
-                            <property name="max_width_chars">32</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="HdyActionRow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="title" translatable="yes">Password</property>
-                        <child>
-                          <object class="GtkBox" id="password_box_area">
-                            <property name="visible">True</property>
-                            <property name="valign">center</property>
-                            <child>
-                              <object class="GtkButton">
-                                <property name="label" translatable="yes">Copy</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <signal name="clicked" handler="on_copy_button_clicked" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="pack_type">end</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                            <style>
-                              <class name="linked"/>
-                            </style>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="HdyActionRow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="title" translatable="yes" comments="To translators: This is the noun not the verb.">Use</property>
-                        <child>
-                          <object class="GtkLabel" id="use_field">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="HdyActionRow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="title" translatable="yes">Type</property>
-                        <child>
-                          <object class="GtkLabel" id="type_field">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="HdyActionRow" id="server_row">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="title" translatable="yes">Server</property>
-                        <child>
-                          <object class="GtkLabel" id="server_field">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="HdyActionRow" id="login_row">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="title" translatable="yes">Login</property>
-                        <child>
-                          <object class="GtkLabel" id="login_field">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
+                  <object class="AdwEntryRow" id="description_field">
+                    <property name="title" translatable="yes">Description</property>
+                    <property name="show-apply-button">True</property>
+                    <signal name="apply" handler="on_description_field_apply"/>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
                 </child>
                 <child>
-                  <object class="HdyPreferencesGroup" id="details_group">
-                    <property name="title" translatable="yes">Details</property>
-                    <child>
-                      <object class="GtkListBox" id="details_box">
-                        <property name="visible">True</property>
-                        <property name="selection_mode">none</property>
-                        <property name="can_focus">False</property>
+                  <object class="AdwPasswordEntryRow" id="password_row">
+                    <property name="title" translatable="yes">Password</property>
+                    <property name="show-apply-button">True</property>
+                    <signal name="apply" handler="on_password_row_apply"/>
+                    <child type="suffix">
+                      <object class="GtkButton">
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <property name="tooltip-text" translatable="yes">Copy secret to clipboard</property>
+                        <signal name="clicked" handler="on_copy_button_clicked"/>
+                        <property name="valign">center</property>
                         <style>
-                          <class name="content"/>
+                          <class name="flat"/>
                         </style>
                       </object>
                     </child>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton">
-                    <property name="label" translatable="yes">Delete Password</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="halign">end</property>
-                    <signal name="clicked" handler="on_delete_button_clicked" swapped="no"/>
-                    <style>
-                      <class name="destructive-action"/>
-                    </style>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes" comments="To translators: This is the noun not the verb.">Use</property>
+                    <child>
+                      <object class="GtkLabel" id="use_field">
+                      </object>
+                    </child>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="pack_type">end</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Type</property>
+                    <child>
+                      <object class="GtkLabel" id="type_field">
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="server_row">
+                    <property name="title" translatable="yes">Server</property>
+                    <child>
+                      <object class="GtkLabel" id="server_field">
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="login_row">
+                    <property name="title" translatable="yes">Login</property>
+                    <child>
+                      <object class="GtkLabel" id="login_field">
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="details_group">
+                <property name="title" translatable="yes">Details</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Delete Password</property>
+                <property name="receives_default">True</property>
+                <property name="halign">end</property>
+                <signal name="clicked" handler="on_delete_button_clicked" swapped="no"/>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
               </object>
             </child>
           </object>

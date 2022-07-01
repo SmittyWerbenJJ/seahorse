@@ -19,46 +19,33 @@
  */
 
 [GtkTemplate (ui = "/org/gnome/Seahorse/seahorse-gkr-item-properties.ui")]
-public class Seahorse.Gkr.ItemProperties : Gtk.Dialog {
-    public Item item { construct; get; }
+public class Seahorse.Gkr.ItemProperties : Gtk.Window {
 
-    [GtkChild]
-    private unowned Gtk.Entry description_field;
-    private bool description_has_changed;
-    [GtkChild]
-    private unowned Gtk.Label use_field;
-    [GtkChild]
-    private unowned Gtk.Label type_field;
-    [GtkChild]
-    private unowned Hdy.PreferencesGroup details_group;
-    [GtkChild]
-    private unowned Gtk.ListBox details_box;
-    [GtkChild]
-    private unowned Hdy.ActionRow server_row;
-    [GtkChild]
-    private unowned Gtk.Label server_field;
-    [GtkChild]
-    private unowned Hdy.ActionRow login_row;
-    [GtkChild]
-    private unowned Gtk.Label login_field;
-    [GtkChild]
-    private unowned Gtk.Box password_box_area;
-    private PasswordEntry password_entry;
+    public Gkr.Item item { construct; get; }
+
+    [GtkChild] private unowned Adw.WindowTitle window_title;
+    [GtkChild] private unowned Adw.EntryRow description_field;
+    [GtkChild] private unowned Gtk.Label use_field;
+    [GtkChild] private unowned Gtk.Label type_field;
+
+    [GtkChild] private unowned Adw.PreferencesGroup details_group;
+    [GtkChild] private unowned Adw.ActionRow server_row;
+    [GtkChild] private unowned Gtk.Label server_field;
+    [GtkChild] private unowned Adw.ActionRow login_row;
+    [GtkChild] private unowned Gtk.Label login_field;
+    [GtkChild] private unowned Adw.PasswordEntryRow password_row;
+    private string original_password = "";
 
     construct {
         // Setup the label properly
         this.item.bind_property("label", this.description_field, "text",
                                 GLib.BindingFlags.SYNC_CREATE);
-        this.description_field.changed.connect(() => {
-            this.description_has_changed = true;
-        });
 
-        /* Window title */
-        var headerbar = (Gtk.HeaderBar) this.get_header_bar();
-        this.item.bind_property("label", headerbar, "subtitle",
+        // Window title
+        this.item.bind_property("label", this.window_title, "subtitle",
                                 GLib.BindingFlags.SYNC_CREATE);
 
-        /* Update as appropriate */
+        // Update as appropriate
         this.item.notify.connect((pspec) => {
             switch(pspec.name) {
             case "use":
@@ -77,44 +64,19 @@ public class Seahorse.Gkr.ItemProperties : Gtk.Dialog {
             }
         });
 
-        // Create the password entry
-        this.password_entry = new PasswordEntry();
-        this.password_box_area.pack_start(this.password_entry, true, true, 0);
+        // fill the password entry
         fetch_password();
 
         // Sensitivity of the password entry
-        this.item.bind_property("has-secret", this.password_entry, "sensitive");
+        this.item.bind_property("has-secret", this.password_row, "sensitive");
     }
 
     public ItemProperties(Item item, Gtk.Window? parent) {
         GLib.Object (
             item: item,
-            transient_for: parent,
-            use_header_bar: 1
+            transient_for: parent
         );
         item.refresh();
-    }
-
-    public override void response(int response) {
-        // In case of changes: ask for confirmation
-        if (!this.password_entry.has_changed && !this.description_has_changed) {
-            destroy();
-            return;
-        }
-
-        var dialog = new Gtk.MessageDialog(this, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING,
-                                           Gtk.ButtonsType.OK_CANCEL, _("Save changes for this item?"));
-        dialog.response.connect((resp) => {
-            if (resp == Gtk.ResponseType.OK) {
-                if (this.password_entry.has_changed)
-                    save_password.begin();
-                if (this.description_has_changed)
-                    save_description.begin();
-            }
-
-            dialog.destroy();
-        });
-        dialog.run();
     }
 
     private void update_use() {
@@ -189,27 +151,20 @@ public class Seahorse.Gkr.ItemProperties : Gtk.Dialog {
 
             any_details = true;
 
-            var row = new Hdy.ActionRow();
+            var row = new Adw.ActionRow();
             row.title = key;
-            row.can_focus = false;
+            row.subtitle = value;
+            row.subtitle_selectable = true;
+            row.add_css_class("property");
 
-            var label = new Gtk.Label (value);
-            label.xalign = 1;
-            label.selectable = true;
-            label.wrap = true;
-            label.wrap_mode = Pango.WrapMode.WORD_CHAR;
-            label.max_width_chars = 32;
-            row.add(label);
-
-            row.show_all();
-            this.details_box.insert(row, -1);
+            this.details_group.add(row);
         }
 
         this.details_group.visible = any_details;
     }
 
     private async void save_password() {
-        var pw = new Secret.Value(this.password_entry.text, -1, "text/plain");
+        var pw = new Secret.Value(this.password_row.text, -1, "text/plain");
         try {
             yield this.item.set_secret(pw, null);
         } catch (GLib.Error err) {
@@ -222,14 +177,9 @@ public class Seahorse.Gkr.ItemProperties : Gtk.Dialog {
     private void fetch_password() {
         var secret = this.item.get_secret();
         if (secret != null) {
-            unowned string? password = secret.get_text();
-            if (password != null) {
-                this.password_entry.set_initial_password(password);
-                return;
-            }
+            this.original_password = secret.get_text() ?? "";
+            this.password_row.text = this.original_password;
         }
-
-        this.password_entry.set_initial_password("");
     }
 
     private async void save_description() {
@@ -243,31 +193,30 @@ public class Seahorse.Gkr.ItemProperties : Gtk.Dialog {
     }
 
     [GtkCallback]
-    private void on_copy_button_clicked() {
-        var clipboard = Gtk.Clipboard.get_default(this.get_display());
-        this.item.copy_secret_to_clipboard.begin(clipboard);
+    private void on_description_field_apply(Adw.EntryRow row) {
+        save_description.begin();
+    }
+
+    [GtkCallback]
+    private void on_password_row_apply(Adw.EntryRow row) {
+        save_password.begin();
+    }
+
+    [GtkCallback]
+    private void on_copy_button_clicked(Gtk.Button button) {
+        this.item.copy_secret_to_clipboard.begin(get_clipboard());
     }
 
     [GtkCallback]
     private void on_delete_button_clicked() {
-        var deleter = this.item.create_deleter();
-        var ret = deleter.prompt(this);
-
-        if (!ret)
-            return;
-
-        deleter.delete.begin(null, (obj, res) => {
+        var delete_op = this.item.create_delete_operation();
+        delete_op.execute_interactively.begin(this, null, (obj, res) => {
             try {
-                deleter.delete.end(res);
-                this.destroy();
+                delete_op.execute_interactively.end(res);
+            } catch (GLib.IOError.CANCELLED e) {
+                debug("Deletion of secret cancelled by user");
             } catch (GLib.Error e) {
-                var dialog = new Gtk.MessageDialog(this,
-                    Gtk.DialogFlags.MODAL,
-                    Gtk.MessageType.ERROR,
-                    Gtk.ButtonsType.OK,
-                    _("Error deleting the password."));
-                dialog.run();
-                dialog.destroy();
+                Util.show_error(this, _("Couldn’t delete secret"), e.message);
             }
         });
     }

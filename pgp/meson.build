@@ -1,23 +1,30 @@
+pgp_enums = gnome.mkenums_simple('seahorse-pgp-enums',
+  sources: [
+    'seahorse-gpgme.h',
+    'seahorse-gpgme-key-op.h',
+  ],
+)
+
 pgp_sources = files(
-  'seahorse-combo-keys.c',
   'seahorse-discovery.c',
   'seahorse-gpgme.c',
   'seahorse-gpgme-add-subkey.c',
   'seahorse-gpgme-add-uid.c',
   'seahorse-gpgme-data.c',
   'seahorse-gpgme-expires-dialog.c',
-  'seahorse-gpgme-exporter.c',
   'seahorse-gpgme-generate-dialog.c',
   'seahorse-gpgme-key.c',
-  'seahorse-gpgme-key-deleter.c',
+  'seahorse-gpgme-key-delete-operation.c',
+  'seahorse-gpgme-key-export-operation.c',
   'seahorse-gpgme-key-op.c',
   'seahorse-gpgme-keyring.c',
   'seahorse-gpgme-photo.c',
   'seahorse-gpgme-photos.c',
   'seahorse-gpgme-revoke-dialog.c',
-  'seahorse-gpgme-secret-deleter.c',
   'seahorse-gpgme-sign-dialog.c',
+  'seahorse-gpgme-subkey-delete-operation.c',
   'seahorse-gpgme-subkey.c',
+  'seahorse-gpgme-uid-delete-operation.c',
   'seahorse-gpgme-uid.c',
   'seahorse-gpg-op.c',
   'seahorse-pgp-actions.c',
@@ -39,7 +46,7 @@ pgp_sources = files(
 pgp_dependencies = [
   config,
   glib_deps,
-  gcr,
+  gcr4_dep,
   gpgme_dep,
   common_dep,
   libseahorse_dep,
@@ -80,7 +87,7 @@ if get_option('key-sharing')
 endif
 
 pgp_lib = static_library('seahorse-pgp',
-  pgp_sources,
+  pgp_sources, pgp_enums,
   dependencies: pgp_dependencies,
   c_args: pgp_c_flags,
 )
