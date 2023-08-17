@@ -22,12 +22,16 @@ namespace Seahorse {
 public interface Lockable : GLib.Object {
 	public abstract bool lockable { get; }
 	public abstract bool unlockable { get; }
+	public abstract bool changeable_pin { get; }
 
 	public abstract async bool lock(GLib.TlsInteraction? interaction,
 	                                GLib.Cancellable? cancellable) throws GLib.Error;
 
 	public abstract async bool unlock(GLib.TlsInteraction? interaction,
 	                                  GLib.Cancellable? cancellable) throws GLib.Error;
+
+	public abstract async bool change_pin(GLib.TlsInteraction? interaction,
+	                                      GLib.Cancellable? cancellable) throws GLib.Error;
 
 	public static bool can_lock(GLib.Object object) {
 		if (object is Lockable)
@@ -38,6 +42,12 @@ public interface Lockable : GLib.Object {
 	public static bool can_unlock(GLib.Object object) {
 		if (object is Lockable)
 			return ((Lockable)object).unlockable;
+		return false;
+	}
+
+	public static bool can_change_pin(GLib.Object object) {
+		if (object is Lockable)
+			return ((Lockable)object).changeable_pin;
 		return false;
 	}
 }

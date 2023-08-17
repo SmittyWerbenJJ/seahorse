@@ -4,6 +4,7 @@ common_sources = files(
   'app-settings.vala',
   'backend.vala',
   'catalog.vala',
+  'change-pin-prompt.vala',
   'datepicker.vala',
   'deletable.vala',
   'delete-dialog.vala',

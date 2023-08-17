@@ -81,6 +81,10 @@ public class Keyring : Secret.Collection, Gcr.Collection, Place, Deletable, Lock
 		get { return get_locked(); }
 	}
 
+	public bool changeable_pin {
+		get { return false; }
+	}
+
 	public bool deletable {
 		get { return true; }
 	}
@@ -146,6 +150,11 @@ public class Keyring : Secret.Collection, Gcr.Collection, Place, Deletable, Lock
 		yield service.unlock(objects, cancellable, out unlocked);
 		refresh_collection ();
 		return unlocked.length() > 0;
+	}
+
+	public async bool change_pin(GLib.TlsInteraction? interaction,
+				     GLib.Cancellable? cancellable) throws GLib.Error {
+		return false;
 	}
 
 	public async bool load(GLib.Cancellable? cancellable) throws GLib.Error {
