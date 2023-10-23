@@ -386,7 +386,7 @@ internal class Seahorse.SidebarItem : Gtk.ListBoxRow {
 
             item = new Gtk.MenuItem.with_mnemonic(_("_Change PIN"));
             item.activate.connect(() => on_place_change_pin(item, (Lockable) this.place));
-            this.place.bind_property("changeable_pin", item, "visible", BindingFlags.SYNC_CREATE);
+            this.place.bind_property("changeable-pin", item, "visible", BindingFlags.SYNC_CREATE);
             menu.append(item);
         }
 
