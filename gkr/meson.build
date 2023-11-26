@@ -1,6 +1,7 @@
 gkr_sources = files(
   'gkr-backend.vala',
   'gkr-dialogs.vala',
+  'gkr-generate-password.vala',
   'gkr-item-add.vala',
   'gkr-item-info.vala',
   'gkr-item-properties.vala',

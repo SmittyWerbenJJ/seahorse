@@ -72,6 +72,16 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
         set_response_sensitive(Gtk.ResponseType.ACCEPT, this.item_entry.text != "");
     }
 
+    [GtkCallback]
+    private void on_change_generatepw_button_clicked (Gtk.Button clicked) {
+        var dialog = new GeneratePassword(this);
+
+        int response = dialog.run();
+        //if (response == Gtk.ResponseType.ACCEPT)
+        //    this.catalog.activate_action("focus-place", "secret-service");
+        dialog.destroy();
+    }
+
     private void on_password_entry_changed (Gtk.Editable entry) {
         void* auxerr;
         int score = this.pwquality.check(entry.get_chars(), null, null, out auxerr);
