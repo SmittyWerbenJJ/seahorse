@@ -21,7 +21,22 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     [GtkChild]
     private unowned Gtk.Entry item_entry;
 
+    private bool capitals_status;
+    private bool lowers_status;
+    private bool numbers_status;
+    private bool symbols_status;
+    private int pw_length;
+    private string capital_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private string lower_letters = "abcdefghijklmnopqrstuvwxyz";
+    private string numbers = "1234567890";
+    private string symbols = ",.<>/?:;\\^~%$@![]#{}()";
+
     construct {
+        this.capitals_status = true;
+        this.lowers_status = true;
+        this.numbers_status = true;
+        this.symbols_status = false;
+        this.pw_length = 24;
     }
 
     public GeneratePassword(Gtk.Window? parent) {
@@ -32,7 +47,15 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     }
 
     private void generate_password() {
-        // TODO
+        string characters = "";
+        if (this.capitals_status == true)
+            characters += this.capital_letters;
+        if (this.lowers_status == true)
+            characters += this.lower_letters;
+        if (this.numbers_status == true)
+            characters += this.numbers;
+        if (this.symbols_status == true)
+            characters += this.symbols;
     }
 
     [GtkCallback]
@@ -42,26 +65,50 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
 
     [GtkCallback]
     private void on_capital_letters_toggled (Gtk.ToggleButton status) {
-        // TODO
+        if (status.active == true)
+            this.capitals_status = true;
+         else
+            this.capitals_status = false;
+
+        if (this.lowers_status == false && this.numbers_status == false && this.symbols_status == false)
+            status.set_active(true);
     }
 
     [GtkCallback]
     private void on_lowercase_letters_toggled (Gtk.ToggleButton status) {
-        // TODO
+        if (status.active == true)
+            this.lowers_status = true;
+         else
+            this.lowers_status = false;
+
+        if (this.capitals_status == false && this.numbers_status == false && this.symbols_status == false)
+            status.set_active(true);
     }
 
     [GtkCallback]
     private void on_numbers_toggled (Gtk.ToggleButton status) {
-        // TODO
+         if (status.active == true)
+            this.numbers_status = true;
+         else
+            this.numbers_status = false;
+
+        if (this.lowers_status == false && this.capitals_status == false && this.symbols_status == false)
+            status.set_active(true);
     }
 
     [GtkCallback]
     private void on_symbols_toggled (Gtk.ToggleButton status) {
-        // TODO
+         if (status.active == true)
+            this.symbols_status = true;
+         else
+            this.symbols_status = false;
+
+        if (this.lowers_status == false && this.numbers_status == false && this.capitals_status == false)
+            status.set_active(true);
     }
 
     [GtkCallback]
     private void on_password_length_value_changed (Gtk.SpinButton entry) {
-        // TODO
+        this.pw_length = (int) entry.get_value();
     }
 }

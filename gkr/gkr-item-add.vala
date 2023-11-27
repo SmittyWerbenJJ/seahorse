@@ -78,7 +78,7 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
 
         int response = dialog.run();
         //if (response == Gtk.ResponseType.ACCEPT)
-        //    this.catalog.activate_action("focus-place", "secret-service");
+            //this.catalog.activate_action("focus-place", "secret-service");
         dialog.destroy();
     }
 
@@ -149,3 +149,4 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
         });
     }
 }
+
