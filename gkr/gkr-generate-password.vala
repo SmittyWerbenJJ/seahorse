@@ -20,23 +20,25 @@
 public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     [GtkChild]
     private unowned Gtk.Entry generated_password;
+    [GtkChild]
+    private unowned Gtk.SpinButton password_length_spin;
+    [GtkChild]
+    private unowned Gtk.CheckButton capital_letters;
+    [GtkChild]
+    private unowned Gtk.CheckButton lowercase_letters;
+    [GtkChild]
+    private unowned Gtk.CheckButton numbers;
+    [GtkChild]
+    private unowned Gtk.CheckButton symbols;
+    [GtkChild]
+    private unowned Gtk.LevelBar password_strength_bar;
+    [GtkChild]
+    private unowned Gtk.Image password_strength_icon;
 
-    private bool capitals_status;
-    private bool lowers_status;
-    private bool numbers_status;
-    private bool symbols_status;
-    private int pw_length;
-    private string capital_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private string lower_letters = "abcdefghijklmnopqrstuvwxyz";
-    private string numbers = "1234567890";
-    private string symbols = ",.<>/?:;\\^~%$@![]#{}()";
+    private PasswordQuality.Settings pwquality = new PasswordQuality.Settings();
 
     construct {
-        this.capitals_status = true;
-        this.lowers_status = true;
-        this.numbers_status = true;
-        this.symbols_status = false;
-        this.pw_length = 24;
+        generate_password();
     }
 
     public GeneratePassword(Gtk.Window? parent) {
@@ -47,68 +49,101 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     }
 
     private void generate_password() {
+        string capital_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        string lower_chars = "abcdefghijklmnopqrstuvwxyz";
+        string number_chars = "1234567890";
+        string symbol_chars = ",.<>/?:;\\^~%$@![]#{}()";
         string characters = "";
-        if (this.capitals_status == true)
-            characters += this.capital_letters;
-        if (this.lowers_status == true)
-            characters += this.lower_letters;
-        if (this.numbers_status == true)
-            characters += this.numbers;
-        if (this.symbols_status == true)
-            characters += this.symbols;
+
+        if (this.capital_letters.active == true)
+            characters += capital_chars;
+        if (this.lowercase_letters.active == true)
+            characters += lower_chars;
+        if (this.numbers.active == true)
+            characters += number_chars;
+        if (this.symbols.active == true)
+            characters += symbol_chars;
+
+        var password = new StringBuilder ();
+        int len = (int) this.password_length_spin.get_value();
+        for (int i = 0; i < len; i++) {
+            int ran_char = Random.int_range(0, characters.length);
+            password.append(characters.substring(ran_char, 1));
+        }
+
+        this.generated_password.set_text(password.str);
     }
 
     [GtkCallback]
     private void on_add_generated_password_changed (Gtk.Editable entry) {
-        set_response_sensitive(Gtk.ResponseType.ACCEPT, this.generated_password.text != "");
+        void* auxerr;
+        int score = this.pwquality.check(entry.get_chars(), null, null, out auxerr);
+
+        if (score < 0) {
+            PasswordQuality.Error err = ((PasswordQuality.Error) score);
+            this.password_strength_icon.tooltip_text = dgettext("libpwquality", err.to_string(auxerr));
+            this.password_strength_icon.show();
+        } else {
+            this.password_strength_icon.hide();
+        }
+
+        this.password_strength_bar.value = ((score / 25) + 1).clamp(1, 5);
     }
 
     [GtkCallback]
     private void on_capital_letters_toggled (Gtk.ToggleButton status) {
         if (status.active == true)
-            this.capitals_status = true;
+            this.capital_letters.active = true;
          else
-            this.capitals_status = false;
+            this.capital_letters.active = false;
 
-        if (this.lowers_status == false && this.numbers_status == false && this.symbols_status == false)
+        if (this.lowercase_letters.active == false && this.numbers.active == false && this.symbols.active == false)
             status.set_active(true);
+
+        generate_password();
     }
 
     [GtkCallback]
     private void on_lowercase_letters_toggled (Gtk.ToggleButton status) {
         if (status.active == true)
-            this.lowers_status = true;
+            this.lowercase_letters.active = true;
          else
-            this.lowers_status = false;
+            this.lowercase_letters.active = false;
 
-        if (this.capitals_status == false && this.numbers_status == false && this.symbols_status == false)
+        if (this.capital_letters.active == false && this.numbers.active == false && this.symbols.active == false)
             status.set_active(true);
+
+        generate_password();
     }
 
     [GtkCallback]
     private void on_numbers_toggled (Gtk.ToggleButton status) {
          if (status.active == true)
-            this.numbers_status = true;
+            this.numbers.active = true;
          else
-            this.numbers_status = false;
+            this.numbers.active = false;
 
-        if (this.lowers_status == false && this.capitals_status == false && this.symbols_status == false)
+        if (this.lowercase_letters.active == false && this.capital_letters.active == false && this.symbols.active == false)
             status.set_active(true);
+
+        generate_password();
     }
 
     [GtkCallback]
     private void on_symbols_toggled (Gtk.ToggleButton status) {
          if (status.active == true)
-            this.symbols_status = true;
+            this.symbols.active = true;
          else
-            this.symbols_status = false;
+            this.symbols.active = false;
 
-        if (this.lowers_status == false && this.numbers_status == false && this.capitals_status == false)
+        if (this.lowercase_letters.active == false && this.numbers.active == false && this.capital_letters.active == false)
             status.set_active(true);
+
+        generate_password();
     }
 
     [GtkCallback]
-    private void on_password_length_value_changed (Gtk.SpinButton entry) {
-        this.pw_length = (int) entry.get_value();
+    private void on_password_length_spin_value_changed (Gtk.SpinButton status) {
+        generate_password();
     }
 }
