@@ -19,7 +19,7 @@
 [GtkTemplate (ui = "/org/gnome/Seahorse/seahorse-gkr-generate-password.ui")]
 public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     [GtkChild]
-    private unowned Gtk.Entry item_entry;
+    private unowned Gtk.Entry generated_password;
 
     private bool capitals_status;
     private bool lowers_status;
@@ -59,8 +59,8 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     }
 
     [GtkCallback]
-    private void on_add_item_entry_changed (Gtk.Editable entry) {
-        set_response_sensitive(Gtk.ResponseType.ACCEPT, this.item_entry.text != "");
+    private void on_add_generated_password_changed (Gtk.Editable entry) {
+        set_response_sensitive(Gtk.ResponseType.ACCEPT, this.generated_password.text != "");
     }
 
     [GtkCallback]
