@@ -19,7 +19,8 @@
 [GtkTemplate (ui = "/org/gnome/Seahorse/seahorse-gkr-generate-password.ui")]
 public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     [GtkChild]
-    private unowned Gtk.Entry generated_password;
+    private unowned Gtk.Grid password_grid;
+    private Gtk.Entry generated_password;
     [GtkChild]
     private unowned Gtk.SpinButton password_length_spin;
     [GtkChild]
@@ -38,6 +39,12 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     private PasswordQuality.Settings pwquality = new PasswordQuality.Settings();
 
     construct {
+        this.generated_password = new PasswordEntry();
+        this.generated_password.visibility = false;
+        this.generated_password.changed.connect(on_generated_password_changed);
+        this.password_grid.attach(this.generated_password, 1, 0);
+        this.generated_password.show();
+
         generate_password();
     }
 
@@ -74,8 +81,7 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
         this.generated_password.set_text(password.str);
     }
 
-    [GtkCallback]
-    private void on_add_generated_password_changed (Gtk.Editable entry) {
+    private void on_generated_password_changed (Gtk.Editable entry) {
         void* auxerr;
         int score = this.pwquality.check(entry.get_chars(), null, null, out auxerr);
 
