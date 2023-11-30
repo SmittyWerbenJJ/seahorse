@@ -21,6 +21,7 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
     [GtkChild]
     private unowned Gtk.Grid password_grid;
     private Gtk.Entry generated_password;
+    public string pass;
     [GtkChild]
     private unowned Gtk.SpinButton password_length_spin;
     [GtkChild]
@@ -79,6 +80,7 @@ public class Seahorse.Gkr.GeneratePassword : Gtk.Dialog {
         }
 
         this.generated_password.set_text(password.str);
+        this.pass = password.str;
     }
 
     private void on_generated_password_changed (Gtk.Editable entry) {

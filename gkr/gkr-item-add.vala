@@ -75,10 +75,10 @@ public class Seahorse.Gkr.ItemAdd : Gtk.Dialog {
     [GtkCallback]
     private void on_change_generatepw_button_clicked (Gtk.Button clicked) {
         var dialog = new GeneratePassword(this);
-
         int response = dialog.run();
-        //if (response == Gtk.ResponseType.ACCEPT)
-            //this.catalog.activate_action("focus-place", "secret-service");
+
+        if (response == Gtk.ResponseType.ACCEPT)
+            this.password_entry.set_text(dialog.pass);
         dialog.destroy();
     }
 
