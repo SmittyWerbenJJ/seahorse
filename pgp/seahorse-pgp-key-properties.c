@@ -84,6 +84,8 @@ struct _SeahorsePgpKeyProperties {
     GtkWidget *photo_previous_button;
     GtkWidget *photo_next_button;
     GtkWidget *ownertrust_combobox;
+    GtkWidget *copy_button;
+    GtkLabel *pubkey_label;
     GtkWidget *uids_container;
     GtkWidget *subkeys_container;
 
@@ -619,6 +621,31 @@ on_export_complete (GObject *source, GAsyncResult *result, void *user_data)
 }
 
 static void
+on_export_string_complete (GObject *source, GAsyncResult *result, void *user_data)
+{
+    g_autoptr(GtkLabel) label = GTK_LABEL (user_data);
+    GError *error = NULL;
+
+    gchar* str = seahorse_exporter_export_to_string_finish (SEAHORSE_EXPORTER (source), result, &error);
+    if (error != NULL)
+        seahorse_util_handle_error (&error, label, _("Couldn’t export key"));
+    else
+      gtk_label_set_text (label, str );
+  g_free(str);
+}
+
+static void
+on_export_clipboard_complete (GObject *source, GAsyncResult *result, void *user_data)
+{
+    g_autoptr(GtkWidget) button = GTK_WIDGET (user_data);
+    GError *error = NULL;
+
+    seahorse_exporter_export_to_clipboard_finish (SEAHORSE_EXPORTER (source), result, &error);
+    if (error != NULL)
+        seahorse_util_handle_error (&error, button, _("Couldn’t export key"));
+}
+
+static void
 export_key_to_file (SeahorsePgpKeyProperties *self, gboolean secret)
 {
     GList *exporters = NULL;
@@ -915,8 +942,21 @@ key_notify (GObject *object, GParamSpec *pspec, void *user_data)
 }
 
 static void
+on_pgp_copy_button_clicked (GtkToggleButton *button,
+                                           gpointer user_data)
+{
+    SeahorseExporter *exporter = NULL;
+    SeahorsePgpKeyProperties *self = SEAHORSE_PGP_KEY_PROPERTIES(user_data);
+
+    exporter = seahorse_gpgme_exporter_new (G_OBJECT (self->key), TRUE, FALSE);
+    seahorse_exporter_export_to_clipboard (exporter, NULL, on_export_clipboard_complete, g_object_ref (button) );
+    g_clear_object (&exporter);
+}
+
+static void
 get_common_widgets (SeahorsePgpKeyProperties *self, GtkBuilder *builder)
 {
+    SeahorseExporter *exporter = NULL;
     GtkWidget *uids_listbox, *subkeys_listbox;
 
     self->name_label = GTK_WIDGET (gtk_builder_get_object (builder, "name_label"));
@@ -933,14 +973,24 @@ get_common_widgets (SeahorsePgpKeyProperties *self, GtkBuilder *builder)
     self->photoid = GTK_IMAGE (gtk_builder_get_object (builder, "photoid"));
     self->photo_event_box = GTK_EVENT_BOX (gtk_builder_get_object (builder, "photo-event-box"));
     self->ownertrust_combobox = GTK_WIDGET (gtk_builder_get_object (builder, "ownertrust_combobox"));
+    self->copy_button = GTK_WIDGET (gtk_builder_get_object (builder, "copy_button"));
+    self->pubkey_label = GTK_LABEL (gtk_builder_get_object (builder, "pubkey_label"));
     self->uids_container = GTK_WIDGET (gtk_builder_get_object (builder, "uids_container"));
     self->subkeys_container = GTK_WIDGET (gtk_builder_get_object (builder, "subkeys_container"));
+
+    exporter = seahorse_gpgme_exporter_new (G_OBJECT (self->key), TRUE, FALSE);
+    seahorse_exporter_export_to_string (exporter, NULL, on_export_string_complete, g_object_ref (self->pubkey_label) );
+    g_clear_object (&exporter);
 
     g_signal_connect_object (self->photo_event_box, "scroll-event",
                              G_CALLBACK (on_pgp_owner_photoid_button),
                              self, 0);
     g_signal_connect_object (self->ownertrust_combobox, "changed",
                              G_CALLBACK (on_pgp_details_trust_changed),
+                             self, 0);
+
+    g_signal_connect_object (self->copy_button, "clicked",
+                             G_CALLBACK (on_pgp_copy_button_clicked),
                              self, 0);
 
     uids_listbox = seahorse_pgp_uid_list_box_new (self->key);

@@ -429,6 +429,41 @@
                       </object>
                     </child>
                     <child>
+                      <object class="HdyExpanderRow">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="title" translatable="yes">Public Key</property>
+                        <child type="action">
+                          <object class="GtkButton" id="copy_button">
+                            <property name="visible">True</property>
+                            <property name="valign">center</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Copy public key to clipboard</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="visible">True</property>
+                                <property name="icon_name">edit-copy-symbolic</property>
+                              </object>
+                            </child>
+                            <style>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="pubkey_label">
+                            <property name="visible">True</property>
+                            <property name="margin">12</property>
+                            <property name="wrap">True</property>
+                            <property name="wrap_mode">char</property>
+                            <property name="selectable">True</property>
+                            <property name="max-width-chars">45</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkBox" id="subkeys_container">
                         <property name="visible">True</property>
                         <property name="orientation">vertical</property>
