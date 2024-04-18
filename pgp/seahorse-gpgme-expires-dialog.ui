@@ -1,57 +1,69 @@
 <?xml version="1.0"?>
 <interface>
-  <requires lib="gtk+" version="3.22"/>
-  <template class="SeahorseGpgmeExpiresDialog" parent="GtkDialog">
-    <property name="visible">True</property>
-    <property name="border-width">12</property>
+  <template class="SeahorseGpgmeExpiresDialog" parent="GtkApplicationWindow">
+    <property name="title" bind-source="window_title" bind-property="title" bind-flags="sync-create|bidirectional" />
     <property name="width-request">400</property>
-    <property name="modal">True</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="all-controls">
-        <property name="visible">True</property>
+
+    <child>
+      <object class='GtkShortcutController'>
+        <child>
+          <object class='GtkShortcut'>
+            <property name='trigger'>Escape</property>
+            <property name='action'>action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">False</property>
+
+        <child>
+          <object class="GtkButton">
+            <property name="label" translatable="yes">_Cancel</property>
+            <property name="use-underline">True</property>
+            <property name="action-name">window.close</property>
+          </object>
+        </child>
+
+        <property name="title-widget">
+          <object class="AdwWindowTitle" id="window_title">
+            <property name="title" translatable="yes">Change Expiry Date</property>
+          </object>
+        </property>
+
+        <child type="end">
+          <object class="GtkButton">
+            <property name="label" translatable="yes">C_hange</property>
+            <property name="use-underline">True</property>
+            <property name="action-name">change-date</property>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkBox" id="content">
         <property name="orientation">vertical</property>
         <property name="spacing">6</property>
         <child>
           <object class="GtkCheckButton" id="never_expires_check">
             <property name="label" translatable="yes">_Never expires</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="use_underline">True</property>
-            <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_gpgme_expire_toggled"/>
           </object>
         </child>
         <child>
           <object class="GtkCalendar" id="calendar">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
           </object>
         </child>
       </object>
     </child>
-    <child type="action">
-      <object class="GtkButton" id="cancel_button">
-        <property name="label">gtk-cancel</property>
-        <property name="visible">True</property>
-        <property name="can_default">True</property>
-        <property name="receives_default">False</property>
-        <property name="use_stock">True</property>
-      </object>
-    </child>
-    <child type="action">
-      <object class="GtkButton" id="ok_button">
-        <property name="visible">True</property>
-        <property name="can_default">True</property>
-        <property name="has_default">True</property>
-        <property name="receives_default">False</property>
-        <property name="label" translatable="yes">C_hange</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="cancel">cancel_button</action-widget>
-      <action-widget response="ok" default="true">ok_button</action-widget>
-    </action-widgets>
+
   </template>
 </interface>

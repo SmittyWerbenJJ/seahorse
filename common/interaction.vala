@@ -45,7 +45,9 @@ public class Seahorse.Interaction : GLib.TlsInteraction {
         if (this.parent != null)
             dialog.transient_for = this.parent;
 
-        int response = dialog.run();
+		// XXX
+        // int response = dialog.run();
+        int response = Gtk.ResponseType.CANCEL;
 
         if (response == Gtk.ResponseType.ACCEPT)
             password.set_value_full((uint8[])gcr_secure_memory_strdup(dialog.get_text()),

@@ -1,8 +1,9 @@
 /*
  * Seahorse
  *
+ * Copyright (C) 2006 Stefan Walter
  * Copyright (C) 2011 Collabora Ltd.
- * Copyright (C) 2012 Stefan Walter
+ * Copyright (C) 2020 Niels De Graef
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,27 +16,26 @@
  * See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
-namespace Seahorse {
+public class Seahorse.Gkr.ItemDeleteOperation : DeleteOperation {
 
-public abstract class Deleter : GLib.Object {
-	public abstract Gtk.Dialog create_confirm(Gtk.Window? parent);
+    public ItemDeleteOperation(Gkr.Item item) {
+        add_item(item);
+    }
 
-	public abstract unowned GLib.List<GLib.Object> get_objects();
+    public void add_item(Gkr.Item item) {
+        if (contains(item))
+            return;
+        this.items.add(item);
+    }
 
-	public abstract bool add_object (GLib.Object obj);
-
-	public abstract async bool delete(GLib.Cancellable? cancellable) throws GLib.Error;
-
-	public bool prompt(Gtk.Window? parent) {
-		var prompt = this.create_confirm(parent);
-		int res = prompt.run();
-		prompt.destroy();
-		return res == Gtk.ResponseType.OK || res == Gtk.ResponseType.ACCEPT;
-	}
-}
-
+    public override async bool execute(Cancellable? cancellable = null) throws GLib.Error {
+        debug("Deleting %u passwords", this.items.length);
+        foreach (unowned var deletable in this.items) {
+            var item = (Gkr.Item) deletable;
+            yield item.delete(cancellable);
+        }
+        return true;
+    }
 }

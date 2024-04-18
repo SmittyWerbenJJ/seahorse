@@ -36,10 +36,10 @@ glib_deps = [
   dependency('gio-unix-2.0',version: '>=' + min_glib_version),
   dependency('gmodule-2.0', version: '>=' + min_glib_version),
 ]
-gtk = dependency('gtk+-3.0', version: '>= 3.24.0')
-libhandy_dep = dependency('libhandy-1', version: '>= 1.6.0')
-gcr = dependency('gcr-3',       version: '>=' + min_gcr_version)
-gcr_ui = dependency('gcr-ui-3', version: '>=' + min_gcr_version)
+gtk4_dep = dependency('gtk4', version: '>= 4.11.5')
+libadwaita_dep = dependency('libadwaita-1', version: '>= 1.2')
+gcr4_dep = dependency('gcr-4', version: '>=' + min_gcr_version)
+# gcr_ui = dependency('gcr-ui-3', version: '>=' + min_gcr_version)
 libsecret = dependency('libsecret-1', version: '>= 0.16')
 libpwquality = dependency('pwquality')
 posix = valac.find_library('posix')
@@ -61,11 +61,6 @@ if get_option('pgp-support')
   if get_option('check-compatible-gpg') and gpg_version_check.returncode() != 0
     error('Incompatible version of GnuPG. Accepted versions are: @0@'.format(accepted_gpg_versions))
   endif
-endif
-
-pkcs11_dep = valac.find_library('pkcs11', required: get_option('pkcs11-support'))
-if get_option('pkcs11-support') and not pkcs11_dep.found()
-  error('Required library "pkcs11" not found (needed for PKCS#11 support)')
 endif
 
 if get_option('ldap-support')

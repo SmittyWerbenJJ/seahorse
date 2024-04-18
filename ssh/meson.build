@@ -2,11 +2,11 @@ ssh_sources = files(
   'actions.vala',
   'algorithm.vala',
   'backend.vala',
-  'deleter.vala',
   'errors.vala',
-  'exporter.vala',
   'generate.vala',
   'key-data.vala',
+  'key-delete-operation.vala',
+  'key-export-operation.vala',
   'key-length-chooser.vala',
   'key-properties.vala',
   'key.vala',
@@ -18,10 +18,9 @@ ssh_sources = files(
 
 ssh_dependencies = [
   glib_deps,
-  gcr,
-  gcr_ui,
+  gcr4_dep,
   posix,
-  gtk,
+  gtk4_dep,
   common_dep,
 ]
 
@@ -46,8 +45,8 @@ ssh_askpass_sources = files(
 )
 
 ssh_askpass_dependencies = [
-  gcr,
-  gtk,
+  gcr4_dep,
+  gtk4_dep,
   config,
   common_dep,
 ]

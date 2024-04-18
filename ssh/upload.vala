@@ -24,12 +24,10 @@ public class Seahorse.Ssh.Upload : Gtk.Dialog {
 
     private unowned List<Key> keys;
 
-    [GtkChild]
-    private unowned Gtk.Entry user_entry;
-    [GtkChild]
-    private unowned Gtk.Entry host_entry;
-    [GtkChild]
-    private unowned Gtk.Button setup_button;
+    [GtkChild] private unowned Adw.EntryRow host_row;
+    [GtkChild] private unowned Adw.EntryRow user_row;
+
+    [GtkChild] private unowned Gtk.Button setup_button;
 
     public Upload(List<Key> keys, Gtk.Window? parent) {
         GLib.Object(use_header_bar: 1);
@@ -37,16 +35,14 @@ public class Seahorse.Ssh.Upload : Gtk.Dialog {
         this.keys = keys;
 
         // Default to the users current name
-        this.user_entry.text = Environment.get_user_name();
-        // Focus the host
-        this.host_entry.grab_focus();
+        this.user_row.text = Environment.get_user_name();
 
         on_upload_input_changed();
     }
 
     private void upload_keys() {
-        string user = this.user_entry.text.strip();
-        string host_port = this.host_entry.text.strip();
+        string user = this.user_row.text.strip();
+        string host_port = this.host_row.text.strip();
 
         if (!user.validate() || host_port == "" || !host_port.validate())
             return;
@@ -73,8 +69,8 @@ public class Seahorse.Ssh.Upload : Gtk.Dialog {
 
     [GtkCallback]
     private void on_upload_input_changed () {
-        string user = this.user_entry.text;
-        string host = this.host_entry.text;
+        string user = this.user_row.text;
+        string host = this.host_row.text;
 
         if (!user.validate() || !host.validate())
             return;
@@ -98,22 +94,11 @@ public class Seahorse.Ssh.Upload : Gtk.Dialog {
             return;
 
         Upload upload_dialog = new Upload(keys, parent);
-        for (;;) {
-            switch (upload_dialog.run()) {
-            case Gtk.ResponseType.HELP:
-                /* TODO: Help */
-                continue;
-            case Gtk.ResponseType.ACCEPT:
+        upload_dialog.response.connect((response) => {
+            if (response == Gtk.ResponseType.ACCEPT)
                 upload_dialog.upload_keys();
-                break;
-            default:
-                break;
-            };
-
-            break;
-        }
-
-        upload_dialog.destroy();
+            upload_dialog.destroy();
+        });
     }
 
 }

@@ -68,8 +68,8 @@ void                   seahorse_pgp_backend_remove_remote        (SeahorsePgpBac
                                                                   const char         *uri);
 
 void                   seahorse_pgp_backend_search_remote_async  (SeahorsePgpBackend *self,
-                                                                  const gchar *search,
-                                                                  GcrSimpleCollection *results,
+                                                                  const char *search,
+                                                                  GListStore *results,
                                                                   GCancellable *cancellable,
                                                                   GAsyncReadyCallback callback,
                                                                   gpointer user_data);
@@ -78,12 +78,12 @@ gboolean               seahorse_pgp_backend_search_remote_finish (SeahorsePgpBac
                                                                   GAsyncResult *result,
                                                                   GError **error);
 
-void                   seahorse_pgp_backend_transfer_async       (SeahorsePgpBackend *self,
-                                                                  GList *keys,
-                                                                  SeahorsePlace *to,
-                                                                  GCancellable *cancellable,
-                                                                  GAsyncReadyCallback callback,
-                                                                  gpointer user_data);
+void                   seahorse_pgp_backend_transfer_async       (SeahorsePgpBackend  *self,
+                                                                  GListModel          *keys,
+                                                                  SeahorsePlace       *to,
+                                                                  GCancellable        *cancellable,
+                                                                  GAsyncReadyCallback  callback,
+                                                                  void                *user_data);
 
 gboolean               seahorse_pgp_backend_transfer_finish      (SeahorsePgpBackend *self,
                                                                   GAsyncResult *result,

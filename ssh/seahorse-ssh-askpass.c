@@ -32,113 +32,113 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 
-#ifdef GDK_WINDOWING_X11
-#include <gdk/gdkx.h>
-#endif
+static SeahorsePassphrasePrompt *dialog = NULL;
+static int response = GTK_RESPONSE_CANCEL;
+
+static void
+on_response (GtkDialog *dialog,
+             int resp,
+             void *user_data)
+{
+    GApplication *app = G_APPLICATION (user_data);
+
+    response = resp;
+
+    gtk_window_destroy (GTK_WINDOW (dialog));
+    g_application_quit (app);
+}
+
+static int
+on_app_command_line (GApplication *app,
+                     GApplicationCommandLine *cmd_line,
+                     void *user_data)
+{
+    g_auto(GStrv) argv = NULL;
+    int argc;
+    const char *title;
+    const char *argument;
+    g_autofree char *message = NULL;
+    const char *flags;
+
+    title = g_getenv ("SEAHORSE_SSH_ASKPASS_TITLE");
+    if (!title || !title[0])
+        title = _("Enter your Secure Shell passphrase:");
+
+    message = (char *) g_getenv ("SEAHORSE_SSH_ASKPASS_MESSAGE");
+    argv = g_application_command_line_get_arguments (cmd_line, &argc);
+    if (message && message[0])
+        message = g_strdup (message);
+    else if (argc > 1)
+        message = g_strjoinv (" ", argv + 1);
+    else
+        message = g_strdup (_("Enter your Secure Shell passphrase:"));
+
+    argument = g_getenv ("SEAHORSE_SSH_ASKPASS_ARGUMENT");
+    if (!argument)
+        argument = "";
+
+    flags = g_getenv ("SEAHORSE_SSH_ASKPASS_FLAGS");
+    if (!flags)
+        flags = "";
+    if (strstr (flags, "multiple")) {
+        g_autofree char *lower = g_ascii_strdown (message, -1);
+
+        /* Need the old passphrase */
+        if (strstr (lower, "old pass")) {
+            title = _("Old Key Passphrase");
+            message = g_strdup_printf (_("Enter the old passphrase for: %s"), argument);
+
+        /* Look for the new passphrase thingy */
+        } else if (strstr (lower, "new pass")) {
+            title = _("New Key Passphrase");
+            message = g_strdup_printf (_("Enter the new passphrase for: %s"), argument);
+
+        /* Confirm the new passphrase, just send it again */
+        } else if (strstr (lower, "again")) {
+            title = _("New Key Passphrase");
+            message = g_strdup_printf (_("Enter the new passphrase again: %s"), argument);
+        }
+    }
+
+    dialog = seahorse_passphrase_prompt_show_dialog (title, message, _("Password:"),
+                                                     NULL, FALSE);
+    g_signal_connect (dialog, "response", G_CALLBACK (on_response), app);
+    gtk_window_present (GTK_WINDOW (dialog));
+
+    return 0;
+}
 
 int
 main (int argc, char* argv[])
 {
-	GdkWindow *transient_for = NULL;
-	SeahorsePassphrasePrompt *dialog;
-	const gchar *title;
-	const gchar *argument;
-	gchar *message;
-	const gchar *flags;
-	int result;
-	const gchar *pass;
-	gulong xid;
-	gssize len;
+    g_autoptr(GtkApplication) app = NULL;
+    int result;
+    const char *pass;
+    gssize len;
 
-	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
-	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-	textdomain (GETTEXT_PACKAGE);
+    bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+    bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+    textdomain (GETTEXT_PACKAGE);
 
-	gtk_init (&argc, &argv);
+    /* Non buffered stdout */
+    setvbuf (stdout, 0, _IONBF, 0);
 
-	/* Non buffered stdout */
-	setvbuf (stdout, 0, _IONBF, 0);
+    app = gtk_application_new (NULL, G_APPLICATION_HANDLES_COMMAND_LINE);
+    g_signal_connect (app, "command-line", G_CALLBACK (on_app_command_line), NULL);
 
-#ifdef GDK_WINDOWING_X11
-	argument = g_getenv ("SEAHORSE_SSH_ASKPASS_PARENT");
-	if (argument) {
-		GdkDisplay *display = gdk_display_get_default ();
-		if (GDK_IS_X11_DISPLAY (display)) {
-			xid = strtoul (argument, NULL, 10);
-			if (xid != 0)
-				transient_for = gdk_x11_window_foreign_new_for_display (display, xid);
-			if (transient_for == NULL)
-				g_warning ("Couldn't find window to be transient for: %s", argument);
-		}
-	}
-#endif
+    result = g_application_run (G_APPLICATION (app), argc, argv);
+    if (result != 0)
+        return result;
 
-	title = g_getenv ("SEAHORSE_SSH_ASKPASS_TITLE");
-	if (!title || !title[0])
-		title = _("Enter your Secure Shell passphrase:");
+    if (response != GTK_RESPONSE_ACCEPT)
+        return 2;
 
-	message = (gchar *)g_getenv ("SEAHORSE_SSH_ASKPASS_MESSAGE");
-	if (message && message[0])
-		message = g_strdup (message);
-	else if (argc > 1)
-		message = g_strjoinv (" ", argv + 1);
-	else
-		message = g_strdup (_("Enter your Secure Shell passphrase:"));
+    pass = seahorse_passphrase_prompt_get_text (dialog);
+    len = strlen (pass ? pass : "");
+    if (write (1, pass, len) != len) {
+        g_warning ("couldn't write out password properly");
+        return 1;
+    }
 
-	argument = g_getenv ("SEAHORSE_SSH_ASKPASS_ARGUMENT");
-	if (!argument)
-		argument = "";
-
-	flags = g_getenv ("SEAHORSE_SSH_ASKPASS_FLAGS");
-	if (!flags)
-		flags = "";
-	if (strstr (flags, "multiple")) {
-		gchar *lower = g_ascii_strdown (message, -1);
-
-		/* Need the old passphrase */
-		if (strstr (lower, "old pass")) {
-			title = _("Old Key Passphrase");
-			message = g_strdup_printf (_("Enter the old passphrase for: %s"), argument);
-
-		/* Look for the new passphrase thingy */
-		} else if (strstr (lower, "new pass")) {
-			title = _("New Key Passphrase");
-			message = g_strdup_printf (_("Enter the new passphrase for: %s"), argument);
-
-		/* Confirm the new passphrase, just send it again */
-		} else if (strstr (lower, "again")) {
-			title = _("New Key Passphrase");
-			message = g_strdup_printf (_("Enter the new passphrase again: %s"), argument);
-		}
-
-		g_free (lower);
-	}
-
-	dialog = seahorse_passphrase_prompt_show_dialog (title, message, _("Password:"),
-	                                          NULL, FALSE);
-
-	g_free (message);
-
-	if (transient_for) {
-		gdk_window_set_transient_for (gtk_widget_get_window (GTK_WIDGET (dialog)),
-		                              transient_for);
-	}
-
-	result = 1;
-	if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
-		pass = seahorse_passphrase_prompt_get_text (dialog);
-		len = strlen (pass ? pass : "");
-		if (write (1, pass, len) != len) {
-			g_warning ("couldn't write out password properly");
-			result = 1;
-		} else {
-			result = 0;
-		}
-	}
-
-	if (transient_for)
-		g_object_unref (transient_for);
-	gtk_widget_destroy (GTK_WIDGET (dialog));
-	return result;
+    return 0;
 }
-

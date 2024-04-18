@@ -27,7 +27,7 @@
 #define SEAHORSE_GPGME_TYPE_EXPIRES_DIALOG (seahorse_gpgme_expires_dialog_get_type ())
 G_DECLARE_FINAL_TYPE (SeahorseGpgmeExpiresDialog, seahorse_gpgme_expires_dialog,
                       SEAHORSE_GPGME, EXPIRES_DIALOG,
-                      GtkDialog)
+                      GtkApplicationWindow)
 
-GtkDialog*   seahorse_gpgme_expires_dialog_new    (SeahorseGpgmeSubkey *subkey,
+GtkWindow*   seahorse_gpgme_expires_dialog_new    (SeahorseGpgmeSubkey *subkey,
                                                    GtkWindow *parent);

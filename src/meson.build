@@ -8,10 +8,15 @@ seahorse_sources = [
   'application.vala',
   'import-dialog.vala',
   'key-manager.vala',
+  'key-manager-filter.vala',
   'key-manager-item-row.vala',
   'main.vala',
   'search-provider.vala',
   'sidebar.vala',
+
+  # XXX
+  '../pkcs11/cryptoki.vapi',
+  '../pkcs11/pkcs11.vapi',
 
   resources_src,
   search_provider_src,
@@ -19,8 +24,8 @@ seahorse_sources = [
 
 seahorse_dependencies = [
   glib_deps,
-  gtk,
-  libhandy_dep,
+  gtk4_dep,
+  libadwaita_dep,
   libsecret,
   common_dep,
   libseahorse_dep,

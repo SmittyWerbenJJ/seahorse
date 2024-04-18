@@ -19,8 +19,8 @@
 
 [GtkTemplate (ui = "/org/gnome/Seahorse/seahorse-gkr-add-keyring.ui")]
 public class Seahorse.Gkr.KeyringAdd : Gtk.Dialog {
-    [GtkChild]
-    private unowned Gtk.Entry name_entry;
+
+    [GtkChild] private unowned Adw.EntryRow name_row;
 
     construct {
         set_response_sensitive(Gtk.ResponseType.ACCEPT, false);
@@ -41,7 +41,7 @@ public class Seahorse.Gkr.KeyringAdd : Gtk.Dialog {
 
         var cancellable = Dialog.begin_request(this);
         var service = Backend.instance().service;
-        Secret.Collection.create.begin(service, this.name_entry.text, null, 0,
+        Secret.Collection.create.begin(service, this.name_row.text, null, 0,
                                        cancellable, (obj, res) => {
             /* Clear the operation without cancelling it since it is complete */
             Dialog.complete_request(this, false);
@@ -57,7 +57,7 @@ public class Seahorse.Gkr.KeyringAdd : Gtk.Dialog {
     }
 
     [GtkCallback]
-    private void on_name_entry_changed(Gtk.Editable editable) {
-        set_response_sensitive(Gtk.ResponseType.ACCEPT, this.name_entry.text != "");
+    private void on_name_row_changed(Gtk.Editable editable) {
+        set_response_sensitive(Gtk.ResponseType.ACCEPT, this.name_row.text != "");
     }
 }

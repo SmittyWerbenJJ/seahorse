@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-public class Seahorse.Prefs : Hdy.PreferencesWindow {
+public class Seahorse.Prefs : Adw.PreferencesWindow {
 
     /**
      * Create a new preferences window.

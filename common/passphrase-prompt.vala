@@ -25,18 +25,10 @@ public const int SEAHORSE_PASS_BAD = 0x00000001;
 public const int SEAHORSE_PASS_NEW = 0x01000000;
 
 public class Seahorse.PassphrasePrompt : Gtk.Dialog {
-    // gnome hig small space in pixels
-    private const int HIG_SMALL = 6;
-    // gnome hig large space in pixels
-    private const int HIG_LARGE = 12;
 
-    private Gtk.Entry secure_entry;
-    private Gtk.Entry? confirm_entry;
+    private Gtk.PasswordEntry pass_entry;
+    private Gtk.PasswordEntry? confirm_entry;
     private Gtk.CheckButton? check_option;
-
-#if ! _DEBUG
-    private bool keyboard_grabbed;
-#endif
 
     public PassphrasePrompt (string? title, string? description, string prompt, string? check, bool confirm) {
         GLib.Object(
@@ -45,42 +37,39 @@ public class Seahorse.PassphrasePrompt : Gtk.Dialog {
             icon_name: "dialog-password-symbolic"
         );
 
-        Gtk.Box wvbox = new Gtk.Box(Gtk.Orientation.VERTICAL, HIG_LARGE * 2);
-        get_content_area().add(wvbox);
-        wvbox.set_border_width(HIG_LARGE);
+        Gtk.Box wvbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 24);
+        set_child(wvbox);
 
-        Gtk.Box chbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, HIG_LARGE);
-        wvbox.pack_start (chbox, false, false);
+        Gtk.Box chbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 12);
+        wvbox.append(chbox);
 
         // The image
-        Gtk.Image img = new Gtk.Image.from_icon_name("dialog-password-symbolic", Gtk.IconSize.DIALOG);
-        img.set_alignment(0.0f, 0.0f);
-        chbox.pack_start(img, false, false);
+        Gtk.Image img = new Gtk.Image.from_icon_name("dialog-password-symbolic");
+        chbox.append(img);
 
-        Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, HIG_SMALL);
-        chbox.pack_start (box);
+        Gtk.Box box = new Gtk.Box(Gtk.Orientation.VERTICAL, 6);
+        chbox.append(box);
 
         // The description text
         if (description != null) {
             Gtk.Label desc_label = new Gtk.Label(utf8_validate (description));
-            desc_label.set_alignment(0.0f, 0.5f);
-            desc_label.set_line_wrap(true);
-            box.pack_start(desc_label, true, false);
+            desc_label.xalign = 0;
+            desc_label.wrap = true;
+            box.append(desc_label);
         }
 
         Gtk.Grid grid = new Gtk.Grid();
-        grid.set_row_spacing(HIG_SMALL);
-        grid.set_column_spacing(HIG_LARGE);
-        box.pack_start(grid, false, false);
+        grid.set_row_spacing(6);
+        grid.set_column_spacing(12);
+        box.append(grid);
 
         // The first entry (if we have one)
         if (confirm) {
             Gtk.Label prompt_label = new Gtk.Label(utf8_validate (prompt));
-            prompt_label.set_alignment(0.0f, 0.5f);
+            prompt_label.xalign = 0;
             grid.attach(prompt_label, 0, 0);
 
-            this.confirm_entry = new Gtk.Entry.with_buffer(new Gcr.SecureEntryBuffer());
-            this.confirm_entry.set_visibility(false);
+            this.confirm_entry = new Gtk.PasswordEntry();
             this.confirm_entry.set_size_request(200, -1);
             this.confirm_entry.activate.connect(confirm_callback);
             this.confirm_entry.changed.connect(entry_changed);
@@ -90,21 +79,20 @@ public class Seahorse.PassphrasePrompt : Gtk.Dialog {
 
         // The second and main entry
         Gtk.Label confirm_label = new Gtk.Label(utf8_validate (confirm? _("Confirm:") : prompt));
-        confirm_label.set_alignment(0.0f, 0.5f);
+        confirm_label.xalign = 0;
         grid.attach(confirm_label, 0, 1);
 
-        this.secure_entry = new Gtk.Entry.with_buffer(new Gcr.SecureEntryBuffer());
-        this.secure_entry.set_size_request(200, -1);
-        this.secure_entry.set_visibility(false);
-        this.secure_entry.activate.connect(() => {
+        this.pass_entry = new Gtk.PasswordEntry();
+        this.pass_entry.set_size_request(200, -1);
+        this.pass_entry.activate.connect(() => {
             if (get_widget_for_response(Gtk.ResponseType.ACCEPT).sensitive)
                 response(Gtk.ResponseType.ACCEPT);
         });
-        grid.attach(secure_entry, 1, 1);
+        grid.attach(pass_entry, 1, 1);
         if (confirm)
-            this.secure_entry.changed.connect(entry_changed);
+            this.pass_entry.changed.connect(entry_changed);
         else
-            this.secure_entry.grab_focus();
+            this.pass_entry.grab_focus();
 
         // The checkbox
         if (check != null) {
@@ -112,28 +100,14 @@ public class Seahorse.PassphrasePrompt : Gtk.Dialog {
             grid.attach(this.check_option, 1, 2);
         }
 
-        grid.show_all();
-
         Gtk.Button cancel_button = new Gtk.Button.with_mnemonic(_("_Cancel"));
         add_action_widget(cancel_button, Gtk.ResponseType.REJECT);
-        cancel_button.set_can_default(true);
 
         Gtk.Button ok_button = new Gtk.Button.with_mnemonic(_("_OK"));
         add_action_widget(ok_button, Gtk.ResponseType.ACCEPT);
-        ok_button.set_can_default(true);
-        ok_button.grab_default();
+        set_default_widget(ok_button);
 
-        // Signals
-        this.map_event.connect(grab_keyboard);
-        this.unmap_event.connect(ungrab_keyboard);
-        this.window_state_event.connect(window_state_changed);
-        this.key_press_event.connect(key_press);
-
-        set_position(Gtk.WindowPosition.CENTER);
         set_resizable(false);
-        set_keep_above(true);
-        show_all();
-        get_window().focus(Gdk.CURRENT_TIME);
 
         if (confirm)
             entry_changed (null);
@@ -146,7 +120,7 @@ public class Seahorse.PassphrasePrompt : Gtk.Dialog {
     }
 
     public string get_text() {
-        return this.secure_entry.text;
+        return this.pass_entry.text;
     }
 
     public bool checked() {
@@ -174,73 +148,14 @@ public class Seahorse.PassphrasePrompt : Gtk.Dialog {
         return result;
     }
 
-    private bool key_press (Gtk.Widget widget, Gdk.EventKey event) {
-        // Close the dialog when hitting "Esc".
-        if (event.keyval == Gdk.Key.Escape) {
-            response(Gtk.ResponseType.REJECT);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool grab_keyboard(Gtk.Widget win, Gdk.Event event) {
-#if ! _DEBUG
-        if (!this.keyboard_grabbed) {
-            Gdk.Display display = Gdk.Display.get_default();
-            Gdk.Seat seat = display.get_default_seat();
-
-            var grab_status = seat.grab(win.get_window(),
-                                        Gdk.SeatCapabilities.KEYBOARD,
-                                        false,
-                                        null,
-                                        event,
-                                        null);
-
-            if (grab_status != Gdk.GrabStatus.SUCCESS)
-                message("could not grab keyboard: %u", grab_status);
-        }
-        this.keyboard_grabbed = true;
-#endif
-        return false;
-    }
-
-    /* ungrab_keyboard - remove grab */
-    private bool ungrab_keyboard (Gtk.Widget win, Gdk.Event event) {
-#if ! _DEBUG
-        if (this.keyboard_grabbed) {
-            Gdk.Display display = Gdk.Display.get_default();
-            Gdk.Seat seat = display.get_default_seat();
-
-            seat.ungrab();
-		}
-        this.keyboard_grabbed = false;
-#endif
-        return false;
-    }
-
     /* When enter is pressed in the confirm entry, move */
     private void confirm_callback(Gtk.Widget widget) {
-        this.secure_entry.grab_focus();
+        this.pass_entry.grab_focus();
     }
 
     private void entry_changed (Gtk.Editable? editable) {
         set_response_sensitive(Gtk.ResponseType.ACCEPT,
-                               this.secure_entry.text == this.confirm_entry.text);
-    }
-
-    private bool window_state_changed (Gtk.Widget win, Gdk.EventWindowState event) {
-        Gdk.WindowState state = win.get_window().get_state();
-
-        if (Gdk.WindowState.WITHDRAWN in state ||
-            Gdk.WindowState.ICONIFIED in state ||
-            Gdk.WindowState.FULLSCREEN in state ||
-            Gdk.WindowState.MAXIMIZED in state)
-                ungrab_keyboard (win, event);
-        else
-            grab_keyboard (win, event);
-
-        return false;
+                               this.pass_entry.text == this.confirm_entry.text);
     }
 
 }

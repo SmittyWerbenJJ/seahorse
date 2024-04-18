@@ -20,25 +20,19 @@
 public class Seahorse.Gkr.KeyringProperties : Gtk.Dialog {
     public Keyring keyring { construct; get; }
 
-    [GtkChild]
-    private unowned Gtk.HeaderBar header;
-    [GtkChild]
-    private unowned Gtk.Label name_label;
-    [GtkChild]
-    private unowned Gtk.Label created_label;
-    [GtkChild]
-    private unowned Gtk.Image keyring_image;
-    [GtkChild]
-    private unowned Gtk.Button set_default_button;
-    [GtkChild]
-    private unowned Gtk.LockButton lock_button;
+    [GtkChild] private unowned Gtk.HeaderBar header;
+
+    [GtkChild] private unowned Gtk.Label name_label;
+    [GtkChild] private unowned Gtk.Label created_label;
+
+    [GtkChild] private unowned Gtk.Button set_default_button;
+    [GtkChild] private unowned Gtk.LockButton lock_button;
 
     construct {
         this.use_header_bar = 1;
 
         this.keyring.bind_property("label", this.header, "subtitle", GLib.BindingFlags.SYNC_CREATE);
         this.keyring.bind_property("label", this.name_label, "label", GLib.BindingFlags.SYNC_CREATE);
-        this.keyring.bind_property("icon", this.keyring_image, "gicon", GLib.BindingFlags.SYNC_CREATE);
 
         // The date field
         set_created(this.keyring.created);

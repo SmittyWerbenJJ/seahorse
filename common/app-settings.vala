@@ -42,7 +42,11 @@ public class Seahorse.AppSettings : GLib.Settings {
 
     public string server_publish_to {
         owned get { return get_string("server-publish-to"); }
-        set { set_string("server-publish-to", value); }
+        set {
+            if (this.server_publish_to == value)
+                return;
+            set_string("server-publish-to", value);
+        }
     }
 
 	public AppSettings () {
