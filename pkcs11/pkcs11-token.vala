@@ -48,6 +48,16 @@ public class Token : GLib.Object, Gcr.Collection, Place, Lockable {
 		}
 	}
 
+	public bool changeable_pin {
+		get {
+			this.ensure_token_info();
+			if ((this._info.flags & CKF.LOGIN_REQUIRED) == 0)
+				return false;
+
+			return true;
+		}
+	}
+
 	public Gck.TokenInfo info {
 		get { return this.ensure_token_info(); }
 	}
@@ -189,6 +199,29 @@ public class Token : GLib.Object, Gcr.Collection, Place, Lockable {
 			                                                    cancellable);
 			return true;
 		}
+	}
+
+	public async bool change_pin(GLib.TlsInteraction? interaction,
+	                             GLib.Cancellable? cancellable) throws GLib.Error {
+        ChangePinPrompt dialog = ChangePinPrompt.show_dialog(_("Enter PIN or password for: %s").printf(label));
+
+        // dialog.transient_for = parent;
+
+        int response = dialog.run();
+
+        if (response == Gtk.ResponseType.ACCEPT) {
+            string old_pin = dialog.get_old_pin();
+            string new_pin = dialog.get_new_pin();
+
+    		yield this._session.set_pin_async(old_pin.data, old_pin.length, new_pin.data, cancellable);
+		}
+
+        dialog.destroy();
+
+        if (response != Gtk.ResponseType.ACCEPT)
+            throw new GLib.IOError.CANCELLED("The pin request was cancelled by the user");
+
+        return true;
 	}
 
 	public bool contains (GLib.Object object) {

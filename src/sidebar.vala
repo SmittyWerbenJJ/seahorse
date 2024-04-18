@@ -383,6 +383,11 @@ internal class Seahorse.SidebarItem : Gtk.ListBoxRow {
             item.activate.connect(() => on_place_unlock(item, (Lockable) this.place));
             this.place.bind_property("unlockable", item, "visible", BindingFlags.SYNC_CREATE);
             menu.append(item);
+
+            item = new Gtk.MenuItem.with_mnemonic(_("_Change PIN"));
+            item.activate.connect(() => on_place_change_pin(item, (Lockable) this.place));
+            this.place.bind_property("changeable-pin", item, "visible", BindingFlags.SYNC_CREATE);
+            menu.append(item);
         }
 
         // Delete item
@@ -452,6 +457,23 @@ internal class Seahorse.SidebarItem : Gtk.ListBoxRow {
 
     private void on_place_unlock(Gtk.MenuItem widget, Lockable lockable) {
         place_unlock(lockable, (Gtk.Window) widget.get_toplevel());
+    }
+
+    private void place_change_pin(Lockable lockable, Gtk.Window? window) {
+        Cancellable cancellable = new Cancellable();
+        TlsInteraction interaction = new Interaction(window);
+
+        lockable.change_pin.begin(interaction, cancellable, (obj, res) => {
+            try {
+                lockable.change_pin.end(res);
+            } catch (Error e) {
+                Util.show_error(window, _("Couldn’t change pin"), e.message);
+            }
+        });
+    }
+
+    private void on_place_change_pin(Gtk.MenuItem widget, Lockable lockable) {
+        place_change_pin(lockable, (Gtk.Window) widget.get_toplevel());
     }
 
     private void on_place_delete(Gtk.MenuItem item, Deletable deletable) {
