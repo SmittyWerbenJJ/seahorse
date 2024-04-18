@@ -1,0 +1,6 @@
+.flatpak-builder/
+
+# vim
+*~
+*.swp
+*.swo

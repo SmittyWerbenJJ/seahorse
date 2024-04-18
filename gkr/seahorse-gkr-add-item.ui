@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="3.22"/>
   <template class="SeahorseGkrItemAdd" parent="GtkDialog">
@@ -35,7 +35,7 @@
               </object>
               <packing>
                 <property name="top_attach">0</property>
-                <property name="left_attach">1</property>
+                <property name="left_attach">2</property>
               </packing>
             </child>
             <child>
@@ -54,14 +54,14 @@
               <object class="GtkEntry" id="item_entry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">&#x2022;</property>
+                <property name="invisible_char">•</property>
                 <property name="activates_default">True</property>
                 <property name="width_chars">16</property>
                 <signal name="changed" handler="on_add_item_entry_changed"/>
               </object>
               <packing>
                 <property name="top_attach">1</property>
-                <property name="left_attach">1</property>
+                <property name="left_attach">2</property>
               </packing>
             </child>
             <child>
@@ -77,6 +77,17 @@
               </packing>
             </child>
             <child>
+              <object class="GtkButton" id="generate_password_button">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">New</property>
+                <signal name="clicked" handler="on_change_generatepw_button_clicked"/>
+              </object>
+              <packing>
+                <property name="top_attach">2</property>
+                <property name="left_attach">1</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkBox" id="password_area">
                 <property name="visible">True</property>
                 <child>
@@ -85,7 +96,7 @@
               </object>
               <packing>
                 <property name="top_attach">2</property>
-                <property name="left_attach">1</property>
+                <property name="left_attach">2</property>
               </packing>
             </child>
             <child>
@@ -99,7 +110,7 @@
               </object>
               <packing>
                 <property name="top_attach">3</property>
-                <property name="left_attach">0</property>
+                <property name="left_attach">1</property>
               </packing>
             </child>
             <child>
@@ -119,7 +130,7 @@
               </object>
               <packing>
                 <property name="top_attach">3</property>
-                <property name="left_attach">1</property>
+                <property name="left_attach">2</property>
               </packing>
             </child>
           </object>
@@ -145,3 +156,4 @@
     </action-widgets>
   </template>
 </interface>
+
