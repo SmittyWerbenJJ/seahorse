@@ -69,6 +69,19 @@ public interface Exporter : GLib.Object {
 		return GLib.File.new_for_uri("%s-%u%s".printf(prefix, state, suffix));
 	}
 
+	public async string export_to_string( GLib.Cancellable? cancellable) throws GLib.Error {
+		uint8[] bytes;
+		bytes = yield this.export(cancellable);
+		return (string)bytes;
+	}
+
+	public async void export_to_clipboard( GLib.Cancellable? cancellable) throws GLib.Error {
+		var text = yield this.export_to_string(cancellable);
+
+		var board = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD);
+		board.set_text (text, text.length);
+	}
+
 	public async bool export_to_file(GLib.File file,
 	                                 bool overwrite,
 	                                 GLib.Cancellable? cancellable) throws GLib.Error {
